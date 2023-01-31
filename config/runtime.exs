@@ -63,6 +63,9 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  config :mta_client,
+    mta_api_key: System.get_env("MTA_API_KEY")
+
   # ## Configuring the mailer
   #
   # In production you need to configure the mailer to use a different adapter.
