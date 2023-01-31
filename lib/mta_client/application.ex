@@ -16,9 +16,9 @@ defmodule MtaClient.Application do
       {Phoenix.PubSub, name: MtaClient.PubSub},
       {Finch, name: MtaFinch},
       # Start the Endpoint (http/https)
-      MtaClientWeb.Endpoint
+      MtaClientWeb.Endpoint,
       # Start a worker by calling: MtaClient.Worker.start_link(arg)
-      # {MtaClient.Worker, arg}
+      {MtaClient.Feed.Supervisor, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

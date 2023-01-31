@@ -6,7 +6,9 @@ defmodule MtaClient.Stations do
   alias MtaClient.Stations.{Parse, Station}
   alias MtaClient.Trips.{Trip, TripUpdate}
 
-  def parse_and_insert_from_csv(path) do
+  @stations_csv_path "static/stations.csv"
+
+  def parse_and_insert_from_csv(path \\ @stations_csv_path) do
     path
     |> Parse.csv()
     |> Enum.reduce(Multi.new(), fn station_map, acc_multi ->
@@ -22,8 +24,8 @@ defmodule MtaClient.Stations do
     |> Repo.transaction()
   end
 
-  def upcoming_trips_by_station(minutes_ahead, limit \\ 10) do
-    now = DateTime.now!("America/New_York") |> DateTime.shift_zone!("UTC") |> DateTime.to_naive()
+  def upcoming_trips_by_station(minutes_ahead) do
+    now = NaiveDateTime.utc_now()
     look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
 
     upcoming_trips_query =
@@ -33,20 +35,27 @@ defmodule MtaClient.Stations do
         join: s in assoc(u, :station),
         where: u.arrival_time > ^now,
         where: u.arrival_time < ^look_ahead_threshold,
+        order_by: [asc: u.arrival_time],
         select: %{
           station: s.name,
           station_id: s.name,
           arrival_time: u.arrival_time,
+          departure_time: u.departure_time,
           route: t.route_id,
-          direction: t.direction
-        },
-        limit: ^limit
+          direction: t.direction,
+          trip_id: t.trip_id,
+          trip_start: t.start_time,
+          train_id: t.train_id
+        }
       )
 
     upcoming_trips_query
     |> Repo.all()
-    |> Enum.map(fn %{arrival_time: at} = r -> Map.put(r, :arrival_time, shift_to_ny_time(at)) end)
+    # |> Enum.map(fn %{arrival_time: at} = r -> Map.put(r, :arrival_time, shift_to_ny_time(at)) end)
     |> Enum.group_by(& &1.station)
+    |> Enum.map(fn {station, trips} ->
+      {station, Enum.uniq_by(trips, &{&1.route, &1.direction})}
+    end)
   end
 
   defp shift_to_ny_time(%NaiveDateTime{} = time) do

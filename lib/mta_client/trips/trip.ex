@@ -5,7 +5,6 @@ defmodule MtaClient.Trips.Trip do
 
   @required_fields [
     :trip_id,
-    :start_time,
     :start_date,
     :route_id
   ]
@@ -16,6 +15,7 @@ defmodule MtaClient.Trips.Trip do
     field :start_date, :date
     field :route_id, :string
     field :direction, :string
+    field :train_id, :string
 
     timestamps()
   end
@@ -24,7 +24,7 @@ defmodule MtaClient.Trips.Trip do
     trip
     |> cast(
       attrs,
-      @required_fields
+      @required_fields ++ [:train_id, :direction, :start_time]
     )
     |> validate_required(@required_fields)
   end

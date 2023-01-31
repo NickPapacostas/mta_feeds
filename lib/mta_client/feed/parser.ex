@@ -14,16 +14,24 @@ defmodule MtaClient.Feed.Parser do
 
   def parse_feed_entities(feed_entities) do
     feed_entities
-    |> Enum.reduce(%{trips: [], trip_updates: [], trains: []}, fn fe, acc ->
+    |> Enum.reduce(%{trips: [], trip_updates: [], trains: [], alerts: []}, fn fe, acc ->
       {trip, trip_updates} = parse_trip(fe)
 
-      train = parse_vehicle_position(fe)
+      # train = parse_vehicle_position(fe)
+
+      alerts =
+        if !is_nil(fe.alert) do
+          acc.alerts ++ [fe]
+        else
+          acc.alerts
+        end
 
       if trip do
         %{
           trips: acc.trips ++ [trip],
           trip_updates: acc.trip_updates ++ trip_updates,
-          trains: acc.trains
+          trains: acc.trains,
+          alerts: alerts
         }
       else
         acc
@@ -32,10 +40,11 @@ defmodule MtaClient.Feed.Parser do
   end
 
   defp parse_trip(%FeedEntity{
-         trip_update: %TripUpdate{
-           trip: %TripDescriptor{} = trip,
-           stop_time_update: updates
-         }
+         trip_update:
+           %TripUpdate{
+             trip: %TripDescriptor{} = trip,
+             stop_time_update: updates
+           } = fe
        }) do
     start_date = parse_date_string(trip.start_date)
 
@@ -45,17 +54,23 @@ defmodule MtaClient.Feed.Parser do
           ndt
 
         {:error, _} ->
-          Logger.error("Feed.Parser unable to parse start time #{inspect(trip)}")
+          # Logger.error("Feed.Parser unable to parse start time #{inspect(fe)}")
+          nil
       end
 
-    direction =
+    {direction, train_id} =
       case Map.from_struct(trip) do
-        %{nyct_trip_descriptor: %NyctTripDescriptor{direction: direction}}
+        %{
+          nyct_trip_descriptor: %NyctTripDescriptor{
+            direction: direction,
+            train_id: train_id
+          }
+        }
         when not is_nil(direction) ->
-          parse_direction(direction)
+          {parse_direction(direction), train_id}
 
         _ ->
-          nil
+          {nil, nil}
       end
 
     trip_map = %{
@@ -63,6 +78,7 @@ defmodule MtaClient.Feed.Parser do
       start_time: start_time,
       start_date: start_date,
       route_id: trip.route_id,
+      train_id: train_id,
       direction: direction
     }
 

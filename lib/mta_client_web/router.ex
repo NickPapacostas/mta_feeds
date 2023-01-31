@@ -1,5 +1,6 @@
 defmodule MtaClientWeb.Router do
   use MtaClientWeb, :router
+  import Phoenix.LiveView.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -18,6 +19,7 @@ defmodule MtaClientWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    live "/stations", Live.Stations
   end
 
   # Other scopes may use custom stacks.

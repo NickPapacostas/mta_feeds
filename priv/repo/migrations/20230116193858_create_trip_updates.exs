@@ -11,6 +11,6 @@ defmodule MtaClient.Repo.Migrations.CreateTripUpdates do
       timestamps()
     end
 
-    create unique_index(:trip_updates, [:trip_id, :arrival_time])
+    create unique_index(:trip_updates, [:trip_id, :station_id])
   end
 end

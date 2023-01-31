@@ -26,7 +26,8 @@ config :mta_client, MtaClientWeb.Endpoint,
   secret_key_base: "3vpH6RTVbj1KnlOZCU/9O0caE60GwosVjxcH3c/TNMrxofDIZN0SdYg1cGKoWaU6",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 # ## SSL Support

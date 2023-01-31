@@ -8,6 +8,7 @@ defmodule MtaClient.Repo.Migrations.CreateTrips do
       add :start_date, :date
       add :route_id, :string
       add :direction, :string
+      add :train_id, :string
 
       timestamps()
     end

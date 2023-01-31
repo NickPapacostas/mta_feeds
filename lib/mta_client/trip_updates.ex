@@ -54,22 +54,23 @@ defmodule MtaClient.TripUpdates do
 
       changeset = TripUpdate.changeset(%TripUpdate{}, map_with_station_and_trip)
 
-      if changeset.valid? do
-        multi_key = {:trip_update, latest_trip_id, station_id}
+      multi_key = {:trip_update, latest_trip_id, station_id}
 
+      update_already_in_multi? =
+        acc_multi.operations
+        |> Enum.map(fn {multi_key, _changeset} -> multi_key end)
+        |> Enum.member?(multi_key)
+
+      if changeset.valid? && !update_already_in_multi? do
         trip_update_multi =
           Multi.new()
           |> Multi.insert(multi_key, changeset,
-            on_conflict: :nothing,
-            conflict_target: [:trip_id, :arrival_time]
+            on_conflict: :replace_all,
+            conflict_target: [:trip_id, :station_id]
           )
 
         Multi.append(acc_multi, trip_update_multi)
       else
-        Logger.error(
-          "TripUpdates invalid: #{inspect(map_with_station_and_trip)} #{inspect(changeset)}"
-        )
-
         acc_multi
       end
     end)
