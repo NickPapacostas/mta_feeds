@@ -9,7 +9,7 @@ defmodule MtaClient.Feed.Processor do
   alias MtaClient.{Trips, TripUpdates}
   alias MtaClient.Trips.{Trip, TripUpdate}
 
-  @api_key Application.compile_env!(:mta_client, :mta_api_key)
+  @api_key Sytem.get_env("MTA_API_KEY")
   @api_endpoint "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/"
   @yellow_lines_path "nyct%2Fgtfs-nqrw"
   @blue_lines_path "nyct%2Fgtfs-ace"
