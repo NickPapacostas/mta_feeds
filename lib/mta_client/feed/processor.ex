@@ -9,7 +9,6 @@ defmodule MtaClient.Feed.Processor do
   alias MtaClient.{Trips, TripUpdates}
   alias MtaClient.Trips.{Trip, TripUpdate}
 
-  @api_key Sytem.get_env("MTA_API_KEY")
   @api_endpoint "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/"
   @yellow_lines_path "nyct%2Fgtfs-nqrw"
   @blue_lines_path "nyct%2Fgtfs-ace"
@@ -73,10 +72,12 @@ defmodule MtaClient.Feed.Processor do
   defp decode_feed(path) do
     r =
       Finch.build(:get, @api_endpoint <> path, [
-        {"x-api-key", @api_key}
+        {"x-api-key", api_key()}
       ])
 
     {:ok, %{body: body}} = Finch.request(r, MtaFinch)
     Protox.decode(body, TransitRealtime.FeedMessage)
   end
+
+  defp api_key(), do: System.get_env("MTA_API_KEY")
 end

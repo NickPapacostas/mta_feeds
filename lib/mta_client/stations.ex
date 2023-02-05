@@ -6,7 +6,10 @@ defmodule MtaClient.Stations do
   alias MtaClient.Stations.{Parse, Station}
   alias MtaClient.Trips.{Trip, TripUpdate}
 
-  @stations_csv_path "static/stations.csv"
+  @stations_csv_path Application.get_env(
+    :mta_client, 
+    :stations_csv_path,
+    "/app/lib/mta_client-0.1.0/priv/static/stations.csv")
 
   def parse_and_insert_from_csv(path \\ @stations_csv_path) do
     path
@@ -29,6 +32,7 @@ defmodule MtaClient.Stations do
     look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
 
     upcoming_trips_query =
+      # stations left join trip updates for all stations
       from(
         u in TripUpdate,
         join: t in assoc(u, :trip),

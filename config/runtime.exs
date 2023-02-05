@@ -64,7 +64,8 @@ if config_env() == :prod do
     secret_key_base: secret_key_base
 
   config :mta_client,
-    mta_api_key: System.get_env("MTA_API_KEY")
+    mta_api_key: System.get_env("MTA_API_KEY"),
+    stations_csv_path: "/app/lib/mta_client-0.1.0/priv/static/stations.csv"
 
   # ## Configuring the mailer
   #
