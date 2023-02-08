@@ -29,7 +29,7 @@ defmodule MtaClient.Feed.Server do
   @impl true
   def handle_cast(:start, state) do
     Logger.warning("Feed.Server starting...")
-    schedule_feed_processing()
+    Process.send(self(), :process_feed, [])
     {:noreply, %{state | stopped: false}}
   end
 
@@ -59,6 +59,6 @@ defmodule MtaClient.Feed.Server do
   end
 
   defp schedule_feed_processing() do
-    Process.send_after(self(), :process_feed, 10_000)
+    Process.send_after(self(), :process_feed, 60_000)
   end
 end

@@ -52,6 +52,7 @@ defmodule MtaClient.Feed.Processor do
 
       Multi.new()
       |> TripUpdates.build_multis(updates)
+      |> MtaClient.Repo.transaction()
 
       new_trips = Repo.all(from(t in Trip, where: t.id not in ^before_trips, select: t.id))
 
@@ -75,9 +76,14 @@ defmodule MtaClient.Feed.Processor do
         {"x-api-key", api_key()}
       ])
 
-    {:ok, %{body: body}} = Finch.request(r, MtaFinch)
-    Protox.decode(body, TransitRealtime.FeedMessage)
+    case Finch.request(r, MtaFinch) do
+      {:ok, %{body: body}} ->
+        Protox.decode(body, TransitRealtime.FeedMessage)
+
+      error ->
+        {:error, error}
+    end
   end
 
-  defp api_key(), do: System.get_env("MTA_API_KEY")
+  defp api_key(), do: Application.get_env(:mta_client, :mta_api_key)
 end

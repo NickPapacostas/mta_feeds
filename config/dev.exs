@@ -34,7 +34,6 @@ config :mta_client,
   mta_api_key: System.get_env("MTA_API_KEY"),
   stations_csv_path: "priv/static/stations.csv"
 
-
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

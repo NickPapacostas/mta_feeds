@@ -21,7 +21,7 @@ module.exports = {
   ],
   safelist: [
     "bg-red-400",
-    "bg-green-400",
+    "bg-green-600",
     "bg-cyan-400",
     "bg-orange-400",
     "bg-yellow-400",

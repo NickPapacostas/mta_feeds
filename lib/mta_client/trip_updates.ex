@@ -12,19 +12,19 @@ defmodule MtaClient.TripUpdates do
     trip_updates
     |> Enum.group_by(& &1.trip_id)
     |> Enum.reduce(multi, fn {trip_id, update_maps}, acc_multi ->
-      latest_trip_id =
+      latest_trip_with_trip_id =
         Repo.one(
           from(
             t in Trip,
             where: t.trip_id == ^trip_id,
-            order_by: [desc: :start_time],
+            order_by: [desc: :start_date, desc: :start_time],
             select: t.id,
             limit: 1
           )
         )
 
-      if latest_trip_id do
-        append_update_multis(acc_multi, latest_trip_id, update_maps)
+      if latest_trip_with_trip_id do
+        append_update_multis(acc_multi, latest_trip_with_trip_id, update_maps)
       else
         acc_multi
       end

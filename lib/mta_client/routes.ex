@@ -2,17 +2,17 @@ defmodule MtaClient.Routes do
   @yellow_routes ["N", "Q", "R", "W"]
   @orange_routes ["B", "D", "M", "F"]
   @red_routes ["1", "2", "3"]
+  @green_routes ["4", "5", "6"]
   @cyan_routes ["A", "C", "E"]
   @emerald_routes ["G"]
   @brown_routes ["J", "Z"]
+  @l_routes ["L"]
   @all_routes @yellow_routes ++
                 @orange_routes ++
                 @red_routes ++
-                @cyan_routes ++ @emerald_routes
-
-  def all_routes() do
-    @all_routes
-  end
+                @green_routes ++
+                @cyan_routes ++
+                @l_routes ++ @emerald_routes
 
   def all_routes() do
     @all_routes
@@ -23,17 +23,22 @@ defmodule MtaClient.Routes do
     |> Enum.map(&{&1, route_color(&1)})
   end
 
-  def route_color(route_id) when route_id in @yellow_routes, do: "yellow"
-  def route_color(route_id) when route_id in @orange_routes, do: "orange"
-  def route_color(route_id) when route_id in @red_routes, do: "red"
-  def route_color(route_id) when route_id in @cyan_routes, do: "cyan"
-  def route_color(route_id) when route_id in @emerald_routes, do: "emerald"
-  def route_color(route_id) when route_id in @brown_routes, do: "zinc"
-  def route_color(_), do: "slate"
+  def route_color(route_id) when route_id in @yellow_routes, do: "yellow-400"
+  def route_color(route_id) when route_id in @orange_routes, do: "orange-400"
+  def route_color(route_id) when route_id in @red_routes, do: "red-400"
+  def route_color(route_id) when route_id in @green_routes, do: "green-600"
+  def route_color(route_id) when route_id in @cyan_routes, do: "cyan-400"
+  def route_color(route_id) when route_id in @emerald_routes, do: "emerald-400"
+  def route_color(route_id) when route_id in @brown_routes, do: "zinc-400"
+  def route_color(_), do: "slate-400"
 
-  def route_destinations(route) do
-    Map.get(route_destinations_map(), route)
+  def route_destination(route, direction) when is_binary(direction) do
+    route_destinations_map()
+    |> Map.get(route, %{})
+    |> Map.get(String.to_existing_atom(direction))
   end
+
+  def route_destination(_route, _direction), do: ""
 
   def route_destinations_map() do
     %{
@@ -58,7 +63,7 @@ defmodule MtaClient.Routes do
       "M" => %{north: "Myrtle Av", south: "Middle Village-Metropolitan Av"},
       "N" => %{north: "Astoria-Ditmars Blvd", south: "Coney Island-Stillwell Av"},
       "Q" => %{north: "96 St", south: "Coney Island-Stillwell Av"},
-      "R" => %{north: "Whitehall St-South Ferry", south: "Bay Ridge-95 St"},
+      "R" => %{north: "Forest Hills-71 av", south: "Bay Ridge-95 St"},
       "S" => %{north: "Times Sq-42 St", south: "Grand Central-42 St"}
     }
   end

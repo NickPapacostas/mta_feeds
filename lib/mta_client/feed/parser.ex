@@ -40,11 +40,10 @@ defmodule MtaClient.Feed.Parser do
   end
 
   defp parse_trip(%FeedEntity{
-         trip_update:
-           %TripUpdate{
-             trip: %TripDescriptor{} = trip,
-             stop_time_update: updates
-           } = fe
+         trip_update: %TripUpdate{
+           trip: %TripDescriptor{} = trip,
+           stop_time_update: updates
+         }
        }) do
     start_date = parse_date_string(trip.start_date)
 
@@ -70,7 +69,14 @@ defmodule MtaClient.Feed.Parser do
           {parse_direction(direction), train_id}
 
         _ ->
-          {nil, nil}
+          case String.split(trip.trip_id, "..") do
+            [_, second_half] ->
+              direction = parse_direction(String.at(second_half, 0))
+              {direction, nil}
+
+            _ ->
+              {nil, nil}
+          end
       end
 
     trip_map = %{
@@ -117,23 +123,23 @@ defmodule MtaClient.Feed.Parser do
     end)
   end
 
-  defp parse_vehicle_position(%FeedEntity{
-         vehicle: %VehiclePosition{} = vp
-       }) do
-    case vp do
-      %{trip: %TripDescriptor{nyct_trip_descriptor: %NyctTripDescriptor{train_id: train_id}}} ->
-        %{
-          train_id: train_id,
-          current_status: parse_status(vp.current_status)
-        }
+  # defp parse_vehicle_position(%FeedEntity{
+  #        vehicle: %VehiclePosition{} = vp
+  #      }) do
+  #   case vp do
+  #     %{trip: %TripDescriptor{nyct_trip_descriptor: %NyctTripDescriptor{train_id: train_id}}} ->
+  #       %{
+  #         train_id: train_id,
+  #         current_status: parse_status(vp.current_status)
+  #       }
 
-      _ ->
-        Logger.error("Feed.Parser unable to parse VehiclePosition #{inspect(vp)}")
-        nil
-    end
-  end
+  #     _ ->
+  #       Logger.error("Feed.Parser unable to parse VehiclePosition #{inspect(vp)}")
+  #       nil
+  #   end
+  # end
 
-  defp parse_vehicle_position(_), do: nil
+  # defp parse_vehicle_position(_), do: nil
 
   # e.g. "20230115" 
   defp parse_date_string(date_string) do
@@ -184,9 +190,11 @@ defmodule MtaClient.Feed.Parser do
   defp parse_direction(:NORTH), do: "north"
   defp parse_direction(:EAST), do: "east"
   defp parse_direction(:WEST), do: "west"
+  defp parse_direction("N"), do: "north"
+  defp parse_direction("S"), do: "south"
 
-  defp parse_status(:STOPPED_AT), do: :stopped_at
-  defp parse_status(:IN_TRANSIT_TO), do: :in_transit_to
-  defp parse_status(:INCOMING_AT), do: :incoming_at
-  defp parse_status(_), do: nil
+  # defp parse_status(:STOPPED_AT), do: :stopped_at
+  # defp parse_status(:IN_TRANSIT_TO), do: :in_transit_to
+  # defp parse_status(:INCOMING_AT), do: :incoming_at
+  # defp parse_status(_), do: nil
 end

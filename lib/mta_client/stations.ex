@@ -7,9 +7,10 @@ defmodule MtaClient.Stations do
   alias MtaClient.Trips.{Trip, TripUpdate}
 
   @stations_csv_path Application.get_env(
-    :mta_client, 
-    :stations_csv_path,
-    "/app/lib/mta_client-0.1.0/priv/static/stations.csv")
+                       :mta_client,
+                       :stations_csv_path,
+                       "/app/lib/mta_client-0.1.0/priv/static/stations.csv"
+                     )
 
   def parse_and_insert_from_csv(path \\ @stations_csv_path) do
     path
@@ -32,11 +33,11 @@ defmodule MtaClient.Stations do
     look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
 
     upcoming_trips_query =
-      # stations left join trip updates for all stations
       from(
-        u in TripUpdate,
-        join: t in assoc(u, :trip),
-        join: s in assoc(u, :station),
+        s in Station,
+        left_join: u in TripUpdate,
+        on: u.station_id == s.id,
+        left_join: t in assoc(u, :trip),
         where: u.arrival_time > ^now,
         where: u.arrival_time < ^look_ahead_threshold,
         order_by: [asc: u.arrival_time],
@@ -55,11 +56,8 @@ defmodule MtaClient.Stations do
 
     upcoming_trips_query
     |> Repo.all()
-    # |> Enum.map(fn %{arrival_time: at} = r -> Map.put(r, :arrival_time, shift_to_ny_time(at)) end)
     |> Enum.group_by(& &1.station)
-    |> Enum.map(fn {station, trips} ->
-      {station, Enum.uniq_by(trips, &{&1.route, &1.direction})}
-    end)
+    |> Enum.sort()
   end
 
   defp shift_to_ny_time(%NaiveDateTime{} = time) do

@@ -13,7 +13,7 @@ defmodule MtaClientWeb.Live.Stations do
       ~H"""
       <.header />
       <div class="grid grid-cols-4 gap-2">
-        <%= for {station, trips} <- assigns.upcoming_trips do %>
+        <%= for {station, trips} <- assigns.filtered_trips do %>
           <.upcoming_trips_for_station station={station} trips={trips} />
         <% end %>
       </div>
@@ -31,10 +31,17 @@ defmodule MtaClientWeb.Live.Stations do
       <div class="py-8 text-base flex justify-center">
 
           <div class="relative cursor-pointer gap-4 flex justify-center">
-            <input type="text" class="rounded border border-gray-300 text-gray-900 text-sm w-32" placeholder="Filter stations...">
+            <form phx-change="station_name_filter" phx-submit="save">
+              <input name="station_name_filter" phx-debounce="500" type="text" class="rounded border border-gray-300 text-gray-900 text-sm w-32" placeholder="Filter stations...">
+            </form>
             <%= for {route, color} <- Routes.routes_with_color() do %>
               <div class="flex flex-col">
-                <% route_class = "flex place-content-center w-8 h-8 bg-#{color}-400 transition-all rounded-full ring-#{color} hover:ring-2 ring-offset-1 " %>
+                <% route_class = "flex place-content-center w-8 h-8 bg-#{color} transition-all rounded-full ring-#{color} hover:ring-2 ring-offset-1 " %>
+                <% route_class = if route == Map.get(assigns, :route_filter) do
+                  route_class <> "ring-2 ring-offset-1"
+                else
+                  route_class
+                end  %>
                 <% route_filter = fn -> JS.push("route_filter", value: %{route: route}) end %>
                 <div phx-click={route_filter.()} class={route_class} >
                   <div class="text-white text-2xl"><%= route %></div>
@@ -60,7 +67,7 @@ defmodule MtaClientWeb.Live.Stations do
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
           <%= for trip <- Enum.take(@trips, 5) do %>
             <% color = Routes.route_color(trip.route) %>
-            <% route_class = "bg-#{color}-400 w-8 h-8 text-white rounded-full shadow-2xl border-white border-2  flex justify-center items-center " %>
+            <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl border-white border-2  flex justify-center items-center " %>
 
             <li class="py-3 sm:py-4">
                <div class="flex justify-center gap-5">
@@ -71,8 +78,14 @@ defmodule MtaClientWeb.Live.Stations do
                    </div>
                    <div >
                        <div>
+                          <% destination = Routes.route_destination(trip.route, trip.direction) %>
+                          <%= destination %> 
+                       </div>
+                   </div>
+                   <div >
+                       <div>
                           <% arrival_time = time_until_arrival(trip.arrival_time) %>
-                          <%= if arrival_time == 0, do: "arriving", else: arrival_time %> 
+                          <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
                        </div>
                    </div>
 
@@ -92,43 +105,94 @@ defmodule MtaClientWeb.Live.Stations do
 
     upcoming_trips = Stations.upcoming_trips_by_station(@minutes_ahead)
 
-    {:ok, assign(socket, :upcoming_trips, upcoming_trips)}
+    socket =
+      socket
+      |> assign(:upcoming_trips, upcoming_trips)
+      |> assign(:filtered_trips, upcoming_trips)
+      |> assign(:params, %{})
+
+    {:ok, socket}
   end
 
-  def handle_info({:upcoming_trips, upcoming_trips}, socket) do
-    upcoming_trips =
-      if route = Map.get(socket.assigns, :route_filter) do
-        filter_for_route(upcoming_trips, route)
-      else
-        upcoming_trips
-      end
+  def handle_params(params, uri, socket) do
+    params = %{
+      route_filter: Map.get(params, "route_filter"),
+      station_name_filter: Map.get(params, "station_name_filter")
+    }
 
-    Logger.info("new Upcoming route #{inspect(route)}")
+    socket = assign(socket, :params, params)
 
-    {:noreply, assign(socket, :upcoming_trips, upcoming_trips)}
+    filtered_upcoming_trips = filter_trips(socket.assigns.upcoming_trips, params)
+    {:noreply, assign(socket, :filtered_trips, filtered_upcoming_trips)}
   end
 
-  def handle_event("route_filter", %{"route" => route}, socket) do
-    upcoming_trips =
-      Stations.upcoming_trips_by_station(@minutes_ahead)
-      |> filter_for_route(route)
+  defp query_params(params) do
+    "?#{URI.encode_query(params)}"
+  end
+
+  def handle_info({:upcoming_trips, upcoming_trips}, %{assigns: %{params: params}} = socket) do
+    filtered_upcoming_trips = filter_trips(upcoming_trips, params)
 
     socket =
       socket
-      |> assign(:route_filter, route)
       |> assign(:upcoming_trips, upcoming_trips)
+      |> assign(:filtered_trips, filtered_upcoming_trips)
 
     {:noreply, socket}
   end
 
-  defp filter_for_route(trips_by_station, route) do
-    Enum.filter(trips_by_station, fn {s, trips} -> Enum.any?(trips, &(&1.route == route)) end)
+  def handle_event("route_filter", %{"route" => route}, socket) do
+    params = Map.merge(socket.assigns.params, %{route_filter: route})
+
+    {:noreply, push_patch(socket, to: "/stations#{query_params(params)}", replace: true)}
   end
 
-  defp trips_for_route(upcoming_trips, route) do
-    # upcoming_trips
-    # |> Enum.map(fn )
+  def handle_event("station_name_filter", %{"station_name_filter" => nil}, socket),
+    do: {:noreply, assign(socket, "station_name_filter", nil)}
+
+  def handle_event("station_name_filter", %{"station_name_filter" => ""}, socket),
+    do: {:noreply, assign(socket, "station_name_filter", nil)}
+
+  def handle_event("station_name_filter", %{"station_name_filter" => name_string}, socket) do
+    params = Map.merge(socket.assigns.params, %{station_name_filter: name_string})
+
+    {:noreply, push_patch(socket, to: "/stations#{query_params(params)}", replace: true)}
   end
+
+  def handle_event(unhandled, unhandled_value, socket) do
+    Logger.warning("Live.Stations unhandled event #{unhandled} #{inspect(unhandled_value)}")
+    {:noreply, assign(socket, "route_filter", nil)}
+  end
+
+  defp filter_trips(trips_by_station, params) do
+    trips_by_station
+    |> filter_for_route(params)
+    |> filter_for_station(params)
+  end
+
+  defp filter_for_route(trips_by_station, %{route_filter: nil}), do: trips_by_station
+  defp filter_for_route(trips_by_station, %{route_filter: ""}), do: trips_by_station
+
+  defp filter_for_route(trips_by_station, %{route_filter: route_filter}) do
+    Enum.filter(trips_by_station, fn {s, trips} ->
+      Enum.any?(trips, &(&1.route == route_filter))
+    end)
+  end
+
+  defp filter_for_route(trips_by_station, _), do: trips_by_station
+
+  defp filter_for_station(trips_by_station, %{station_name_filter: nil}), do: trips_by_station
+  defp filter_for_station(trips_by_station, %{station_name_filter: ""}), do: trips_by_station
+
+  defp filter_for_station(trips_by_station, %{station_name_filter: station_name_filter}) do
+    Enum.filter(trips_by_station, fn {station, _} ->
+      String.contains?(String.downcase(station), String.downcase(station_name_filter))
+    end)
+  end
+
+  defp filter_for_station(trips_by_station, _), do: trips_by_station
+
+  defp time_until_arrival(nil), do: ""
 
   defp time_until_arrival(arrival_time) do
     NaiveDateTime.diff(arrival_time, NaiveDateTime.utc_now(), :minute)
