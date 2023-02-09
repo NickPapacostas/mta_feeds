@@ -38,6 +38,7 @@ defmodule MtaClient.Stations do
         left_join: u in TripUpdate,
         on: u.station_id == s.id,
         left_join: t in assoc(u, :trip),
+        left_join: td in assoc(t, :trip_destination),
         where: u.arrival_time > ^now,
         where: u.arrival_time < ^look_ahead_threshold,
         order_by: [asc: u.arrival_time],
@@ -47,6 +48,7 @@ defmodule MtaClient.Stations do
           arrival_time: u.arrival_time,
           departure_time: u.departure_time,
           route: t.route_id,
+          destination: td.destination_name,
           direction: t.direction,
           trip_id: t.trip_id,
           trip_start: t.start_time,
@@ -56,7 +58,7 @@ defmodule MtaClient.Stations do
 
     upcoming_trips_query
     |> Repo.all()
-    |> Enum.group_by(& &1.station)
+    |> Enum.group_by(& &1.station_id)
     |> Enum.sort()
   end
 

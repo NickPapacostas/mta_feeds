@@ -32,7 +32,8 @@ config :mta_client, MtaClientWeb.Endpoint,
 
 config :mta_client,
   mta_api_key: System.get_env("MTA_API_KEY"),
-  stations_csv_path: "priv/static/stations.csv"
+  stations_csv_path: "priv/static/stations.csv",
+  trip_destinations_csv_path: "priv/static/trip_destinations.csv"
 
 # ## SSL Support
 #

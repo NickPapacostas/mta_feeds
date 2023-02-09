@@ -29,5 +29,16 @@ module.exports = {
     "bg-zinc-400",
     "bg-slate-400",
     "bg-black-400",
+    "bg-violet-400",
+    "ring-red-400",
+    "ring-green-600",
+    "ring-cyan-400",
+    "ring-orange-400",
+    "ring-yellow-400",
+    "ring-emerald-400",
+    "ring-zinc-400",
+    "ring-slate-400",
+    "ring-black-400",
+    "ring-violet-400"
   ]
 }

@@ -6,12 +6,14 @@ defmodule MtaClient.Routes do
   @cyan_routes ["A", "C", "E"]
   @emerald_routes ["G"]
   @brown_routes ["J", "Z"]
+  @purple_routes ["7"]
   @l_routes ["L"]
   @all_routes @yellow_routes ++
                 @orange_routes ++
                 @red_routes ++
                 @green_routes ++
                 @cyan_routes ++
+                @purple_routes ++
                 @l_routes ++ @emerald_routes
 
   def all_routes() do
@@ -30,6 +32,7 @@ defmodule MtaClient.Routes do
   def route_color(route_id) when route_id in @cyan_routes, do: "cyan-400"
   def route_color(route_id) when route_id in @emerald_routes, do: "emerald-400"
   def route_color(route_id) when route_id in @brown_routes, do: "zinc-400"
+  def route_color(route_id) when route_id in @purple_routes, do: "violet-400"
   def route_color(_), do: "slate-400"
 
   def route_destination(route, direction) when is_binary(direction) do

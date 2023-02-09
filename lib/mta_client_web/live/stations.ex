@@ -11,10 +11,10 @@ defmodule MtaClientWeb.Live.Stations do
   def render(assigns) do
     if assigns.upcoming_trips do
       ~H"""
-      <.header />
+      <.header route_filter={assigns.params.route_filter} />
       <div class="grid grid-cols-4 gap-2">
-        <%= for {station, trips} <- assigns.filtered_trips do %>
-          <.upcoming_trips_for_station station={station} trips={trips} />
+        <%= for {_station_id, trips} <- assigns.filtered_trips do %>
+          <.upcoming_trips_for_station station={List.first(trips).station} trips={trips} />
         <% end %>
       </div>
       """
@@ -32,18 +32,11 @@ defmodule MtaClientWeb.Live.Stations do
 
           <div class="relative cursor-pointer gap-4 flex justify-center">
             <form phx-change="station_name_filter" phx-submit="save">
-              <input name="station_name_filter" phx-debounce="500" type="text" class="rounded border border-gray-300 text-gray-900 text-sm w-32" placeholder="Filter stations...">
+              <input value={@route_filter} name="station_name_filter" phx-debounce="500" type="text" class="rounded border border-gray-300 text-gray-900 text-sm w-32" placeholder="Filter stations...">
             </form>
             <%= for {route, color} <- Routes.routes_with_color() do %>
               <div class="flex flex-col">
-                <% route_class = "flex place-content-center w-8 h-8 bg-#{color} transition-all rounded-full ring-#{color} hover:ring-2 ring-offset-1 " %>
-                <% route_class = if route == Map.get(assigns, :route_filter) do
-                  route_class <> "ring-2 ring-offset-1"
-                else
-                  route_class
-                end  %>
-                <% route_filter = fn -> JS.push("route_filter", value: %{route: route}) end %>
-                <div phx-click={route_filter.()} class={route_class} >
+                <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
                   <div class="text-white text-2xl"><%= route %></div>
                 </div>
               </div>
@@ -78,7 +71,7 @@ defmodule MtaClientWeb.Live.Stations do
                    </div>
                    <div >
                        <div>
-                          <% destination = Routes.route_destination(trip.route, trip.direction) %>
+                          <% destination = trip.destination || Routes.route_destination(trip.route, trip.direction) %>
                           <%= destination %> 
                        </div>
                    </div>
@@ -98,6 +91,34 @@ defmodule MtaClientWeb.Live.Stations do
     """
   end
 
+  ####  View Helpers 
+
+  defp route_click_fn(route, route_filter) do
+    value =
+      if route == route_filter do
+        nil
+      else
+        route
+      end
+
+    fn ->
+      JS.push("route_filter", value: %{route: value})
+    end
+  end
+
+  defp route_circle_class(route, color, route_filter) do
+    route_class =
+      "flex place-content-center w-8 h-8 bg-#{color} transition-all rounded-full ring-#{color} hover:ring-2 ring-offset-1 "
+
+    if route == route_filter do
+      route_class <> "ring-#{color} ring-2 ring-offset-1"
+    else
+      route_class
+    end
+  end
+
+  ### Callbacks
+
   def mount(_params, _session, socket) do
     if connected?(socket) do
       MtaClientWeb.Endpoint.subscribe(@upcoming_trips_topic)
@@ -109,7 +130,7 @@ defmodule MtaClientWeb.Live.Stations do
       socket
       |> assign(:upcoming_trips, upcoming_trips)
       |> assign(:filtered_trips, upcoming_trips)
-      |> assign(:params, %{})
+      |> assign(:params, %{route_filter: nil, station_name_filter: nil})
 
     {:ok, socket}
   end
@@ -146,12 +167,6 @@ defmodule MtaClientWeb.Live.Stations do
 
     {:noreply, push_patch(socket, to: "/stations#{query_params(params)}", replace: true)}
   end
-
-  def handle_event("station_name_filter", %{"station_name_filter" => nil}, socket),
-    do: {:noreply, assign(socket, "station_name_filter", nil)}
-
-  def handle_event("station_name_filter", %{"station_name_filter" => ""}, socket),
-    do: {:noreply, assign(socket, "station_name_filter", nil)}
 
   def handle_event("station_name_filter", %{"station_name_filter" => name_string}, socket) do
     params = Map.merge(socket.assigns.params, %{station_name_filter: name_string})
