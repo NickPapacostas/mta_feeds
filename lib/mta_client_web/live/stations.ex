@@ -13,8 +13,8 @@ defmodule MtaClientWeb.Live.Stations do
       ~H"""
       <div class="p-4">
         <.header route_filter={assigns.params.route_filter} station_name_filter={assigns.params.station_name_filter}/>
-        <div class="grid md:grid-cols-3 gap-2  ">
-          <%= for {_station_id, trips} <- Enum.take(assigns.filtered_trips, 20) do %>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-2  ">
+          <%= for {_station_id, trips} <- Enum.take(assigns.filtered_trips, 30) do %>
             <.upcoming_trips_for_station station={List.first(trips).station} trips={trips} />
           <% end %>
         </div>
@@ -165,13 +165,13 @@ defmodule MtaClientWeb.Live.Stations do
   def handle_event("route_filter", %{"route" => route}, socket) do
     params = Map.merge(socket.assigns.params, %{route_filter: route})
 
-    {:noreply, push_patch(socket, to: "/stations#{query_params(params)}", replace: true)}
+    {:noreply, push_patch(socket, to: "/#{query_params(params)}", replace: true)}
   end
 
   def handle_event("station_name_filter", %{"station_name_filter" => name_string}, socket) do
     params = Map.merge(socket.assigns.params, %{station_name_filter: name_string})
 
-    {:noreply, push_patch(socket, to: "/stations#{query_params(params)}", replace: true)}
+    {:noreply, push_patch(socket, to: "/#{query_params(params)}", replace: true)}
   end
 
   def handle_event(unhandled, unhandled_value, socket) do

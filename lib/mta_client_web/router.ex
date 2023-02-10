@@ -18,8 +18,7 @@ defmodule MtaClientWeb.Router do
   scope "/", MtaClientWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
-    live "/stations", Live.Stations
+    live "/", Live.Stations
   end
 
   # Other scopes may use custom stacks.
