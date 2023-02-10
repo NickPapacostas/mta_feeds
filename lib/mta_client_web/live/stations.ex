@@ -11,11 +11,13 @@ defmodule MtaClientWeb.Live.Stations do
   def render(assigns) do
     if assigns.upcoming_trips do
       ~H"""
-      <.header route_filter={assigns.params.route_filter} station_name_filter={assigns.params.station_name_filter}/>
-      <div class="grid grid-cols-4 gap-2">
-        <%= for {_station_id, trips} <- assigns.filtered_trips do %>
-          <.upcoming_trips_for_station station={List.first(trips).station} trips={trips} />
-        <% end %>
+      <div class="p-4">
+        <.header route_filter={assigns.params.route_filter} station_name_filter={assigns.params.station_name_filter}/>
+        <div class="grid md:grid-cols-3 gap-2  ">
+          <%= for {_station_id, trips} <- Enum.take(assigns.filtered_trips, 20) do %>
+            <.upcoming_trips_for_station station={List.first(trips).station} trips={trips} />
+          <% end %>
+        </div>
       </div>
       """
     else
@@ -27,15 +29,15 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp header(assigns) do
     ~H"""
-    <div class="divide-y divide-gray-400/50">
+    <div class="divide-y">
       <div class="py-8 text-base flex justify-center ">
 
-          <div class="relative cursor-pointer gap-4 flex justify-center">
+          <div class="relative cursor-pointer gap-4 flex justify-center flex-wrap">
             <form phx-change="station_name_filter" phx-submit="save">
-              <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class="rounded border border-gray-300 text-gray-900 text-sm w-32" placeholder="Filter stations...">
+              <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class="rounded border text-sm w-32 bg-orange-100" placeholder="Filter stations...">
             </form>
             <%= for {route, color} <- Routes.routes_with_color() do %>
-              <div class="flex flex-col">
+              <div class="flex flex-col ">
                 <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
                   <div class="text-white text-2xl"><%= route %></div>
                 </div>
@@ -43,7 +45,6 @@ defmodule MtaClientWeb.Live.Stations do
             <% end %>
           </div>
       </div>
-     <div class="divide-y divide-gray-400/50"></div>
     </div>
 
     """
@@ -51,15 +52,15 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp upcoming_trips_for_station(assigns) do
     ~H"""
-    <div class="flex flex-col border-black border-3 shadow-indigo-50 shadow-md">
-      <div class ="flex p-4 justify-center rounded-lg bg-white "> 
-        <div class="text-black-100 "> <%= @station %> </div>
+    <div class="p-4 flex flex-col border-black border-4 ">
+      <div class =" text-center rounded-lg "> 
+        <div class="text-black-100 underline font-bold"> <%= @station %> </div>
       </div>
       <div>
-        <ul class="divide-y divide-gray-200">
+        <ul class=" divide-black divide-y">
           <%= for trip <- Enum.take(@trips, 5) do %>
             <% color = Routes.route_color(trip.route) %>
-            <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl border-white border-2  flex justify-center items-center " %>
+            <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl  flex justify-center items-center " %>
 
             <li class="py-3 sm:py-4">
                <div class="flex justify-center gap-5">

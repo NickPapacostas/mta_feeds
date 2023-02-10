@@ -22,7 +22,7 @@ defmodule MtaClient.Feed.Server do
 
   @impl true
   def init(_) do
-    # Process.send(self(), :process_feed, [])
+    Process.send(self(), :process_feed, [])
     {:ok, %{tick: 0, stopped: false}}
   end
 

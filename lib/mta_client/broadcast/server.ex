@@ -21,6 +21,7 @@ defmodule MtaClient.Broadcast.Server do
 
   @impl true
   def init(_) do
+    GenServer.cast(self(), :start)
     {:ok, %{tick: 0, stopped: false}}
   end
 
@@ -51,7 +52,7 @@ defmodule MtaClient.Broadcast.Server do
   end
 
   defp broadcast_update() do
-    upcoming_trips = MtaClient.Stations.upcoming_trips_by_station(10)
+    upcoming_trips = MtaClient.Stations.upcoming_trips_by_station(30)
     PubSub.broadcast(MtaClient.PubSub, "upcoming_trips_update", {:upcoming_trips, upcoming_trips})
   end
 
