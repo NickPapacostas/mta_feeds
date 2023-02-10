@@ -18,7 +18,8 @@ defmodule MtaClient.Application do
       # Start the Endpoint (http/https)
       MtaClientWeb.Endpoint,
       # Start a worker by calling: MtaClient.Worker.start_link(arg)
-      {MtaClient.Feed.Supervisor, []}
+      {MtaClient.Feed.Supervisor, []},
+      {MtaClient.Broadcast.Supervisor, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

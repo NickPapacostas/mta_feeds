@@ -44,7 +44,7 @@ defmodule MtaClient.Stations do
         order_by: [asc: u.arrival_time],
         select: %{
           station: s.name,
-          station_id: s.name,
+          station_id: s.gtfs_stop_id,
           arrival_time: u.arrival_time,
           departure_time: u.departure_time,
           route: t.route_id,

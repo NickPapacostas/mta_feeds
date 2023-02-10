@@ -43,7 +43,6 @@ defmodule MtaClient.Feed.Processor do
          %{trips: trips, trip_updates: updates} = result <-
            Parser.parse_feed_entities(decoded_feed.entity) do
       before_trips = Repo.all(from(t in Trip, select: t.id))
-      before_trip_updates = Repo.all(from(tu in TripUpdate, select: tu.id))
       Logger.info("Processor processing #{path}, before_trips: #{length(before_trips)}")
 
       Multi.new()
@@ -56,17 +55,13 @@ defmodule MtaClient.Feed.Processor do
 
       new_trips = Repo.all(from(t in Trip, where: t.id not in ^before_trips, select: t.id))
 
-      after_trip_updates =
-        Repo.all(from(tu in TripUpdate, where: tu.id not in ^before_trip_updates, select: tu.id))
-
-      Logger.info(
-        "Processor processing #{path}, new updates: #{length(after_trip_updates)}, after trips: #{length(new_trips)}, eg #{inspect(after_trip_updates)}"
-      )
+      Logger.info("Processor processing #{path} after trips: #{length(new_trips)}")
 
       result
     else
       error ->
         Logger.error("Feed.Processor error processing #{path} #{inspect(error)}")
+        {:error, error}
     end
   end
 

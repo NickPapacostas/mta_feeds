@@ -44,15 +44,7 @@ defmodule MtaClient.Trips.TripDestination do
       |> Enum.map(fn
         {:ok, trip_map} -> trip_map
       end)
-      |> then(fn l ->
-        IO.inspect(length(l))
-        l
-      end)
       |> Enum.uniq_by(&{csv_trip_id(&1["trip_id"]), &1["trip_headsign"]})
-      |> then(fn l ->
-        IO.inspect(length(l))
-        l
-      end)
       |> Enum.map(fn %{"trip_id" => trip_id, "trip_headsign" => destination_name} ->
         %{
           trip_id_string: csv_trip_id(trip_id),
@@ -62,10 +54,9 @@ defmodule MtaClient.Trips.TripDestination do
         }
       end)
 
-    Repo.transaction(fn ->
-      Enum.map(parsed_maps, fn td ->
-        Repo.insert(TripDestination.changeset(%TripDestination{}, td))
-      end)
+    # transaction times out insert all goes over allocations
+    Enum.map(parsed_maps, fn td ->
+      Repo.insert(TripDestination.changeset(%TripDestination{}, td))
     end)
   end
 

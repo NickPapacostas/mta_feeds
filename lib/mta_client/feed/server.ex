@@ -47,15 +47,9 @@ defmodule MtaClient.Feed.Server do
 
   def handle_info(:process_feed, %{tick: tick} = state) do
     Processor.process_feeds()
-    broadcast_update()
     schedule_feed_processing()
     Logger.info("Feed.Server processed feeds...")
     {:noreply, %{state | tick: tick + 1}}
-  end
-
-  defp broadcast_update() do
-    upcoming_trips = MtaClient.Stations.upcoming_trips_by_station(10)
-    PubSub.broadcast(MtaClient.PubSub, "upcoming_trips_update", {:upcoming_trips, upcoming_trips})
   end
 
   defp schedule_feed_processing() do
