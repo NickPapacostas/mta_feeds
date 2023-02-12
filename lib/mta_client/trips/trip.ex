@@ -35,5 +35,7 @@ defmodule MtaClient.Trips.Trip do
       @required_fields ++ @optional_fields
     )
     |> validate_required(@required_fields)
+
+    # handle index validation
   end
 end

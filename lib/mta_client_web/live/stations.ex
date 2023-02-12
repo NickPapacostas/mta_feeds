@@ -12,9 +12,17 @@ defmodule MtaClientWeb.Live.Stations do
     if assigns.upcoming_trips do
       ~H"""
       <div class="p-4">
-        <.header route_filter={assigns.params.route_filter} station_name_filter={assigns.params.station_name_filter}/>
-        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-2  ">
-          <%= for {_station_id, trips} <- Enum.take(assigns.filtered_trips, 30) do %>
+        <.header route_filter={assigns.params.route_filter} route_counts={assigns.route_counts} station_name_filter={assigns.params.station_name_filter}/>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <% filtered_trips = if assigns.params.route_filter || assigns.params.station_name_filter do
+            assigns.filtered_trips
+          else
+            # if no filters show 30 random stations
+            assigns.filtered_trips
+            |> Enum.shuffle
+            |> Enum.take(30)
+          end %>
+          <%= for {_station_id, trips} <- filtered_trips do %>
             <.upcoming_trips_for_station station={List.first(trips).station} trips={trips} />
           <% end %>
         </div>
@@ -29,21 +37,31 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp header(assigns) do
     ~H"""
-    <div class="divide-y">
-      <div class="py-8 text-base flex justify-center ">
+    <div class="flex justify-center">
+      <a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" target="_blank" class="pb-4 font-bold underline underline-offset-4 decoration-sky-500 text-center ">
+        <div  class="">NYC TRAIN TIMES</div>
+      </a>  
+    </div>
 
-          <div class="relative cursor-pointer gap-4 flex justify-center flex-wrap">
-            <form phx-change="station_name_filter" phx-submit="save">
-              <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class="rounded border text-sm w-32 bg-orange-100" placeholder="Filter stations...">
-            </form>
-            <%= for {route, color} <- Routes.routes_with_color() do %>
-              <div class="flex flex-col ">
-                <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
-                  <div class="text-white text-2xl"><%= route %></div>
-                </div>
-              </div>
-            <% end %>
+      <div class="pb-8 justify-center ">
+        <div class="relative cursor-pointer gap-4 flex justify-center flex-wrap">
+        <form phx-change="station_name_filter" phx-submit="save" class="flex justify-center">
+          <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Filter stations...">
+        </form>
+
+        <%= for {route, color} <- Routes.routes_with_color() do %>
+          <div class="flex flex-col ">
+            <% count_for_rount = Map.get(@route_counts, route, 0) %>
+            <% {color, text_color} = if count_for_rount == 0 do
+              {"bg-slate-800", "text-slate-200"}
+            else
+              {"bg-#{color}", "text-white"}
+            end %>
+            <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
+              <div class={"#{text_color} text-2xl"}><%= route %></div>
+            </div>
           </div>
+        <% end %>
       </div>
     </div>
 
@@ -108,10 +126,10 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp route_circle_class(route, color, route_filter) do
     route_class =
-      "flex place-content-center w-8 h-8 bg-#{color} transition-all rounded-full ring-#{color} hover:ring-2 ring-offset-1 "
+      "flex place-content-center w-8 h-8 #{color} transition-all rounded-full ring-offset-2 mb-2 "
 
     if route == route_filter do
-      route_class <> "ring-#{color} ring-2 ring-offset-1"
+      route_class <> "ring-#{color} ring-4 ring-offset-1"
     else
       route_class
     end
@@ -125,17 +143,23 @@ defmodule MtaClientWeb.Live.Stations do
     end
 
     upcoming_trips = Stations.upcoming_trips_by_station(@minutes_ahead)
+    route_counts_for_trips = Routes.route_counts_for_trips(upcoming_trips)
 
     socket =
       socket
       |> assign(:upcoming_trips, upcoming_trips)
       |> assign(:filtered_trips, upcoming_trips)
+      |> assign(:route_counts, route_counts_for_trips)
       |> assign(:params, %{route_filter: nil, station_name_filter: nil})
 
     {:ok, socket}
   end
 
-  def handle_params(params, uri, socket) do
+  def handle_params(%{"route_filter" => "", "station_name_filter" => ""}, uri, socket) do
+    handle_params(%{"route_filter" => nil, "station_name_filter" => nil}, uri, socket)
+  end
+
+  def handle_params(params, _uri, socket) do
     params = %{
       route_filter: Map.get(params, "route_filter"),
       station_name_filter: Map.get(params, "station_name_filter")
@@ -151,13 +175,17 @@ defmodule MtaClientWeb.Live.Stations do
     "?#{URI.encode_query(params)}"
   end
 
-  def handle_info({:upcoming_trips, upcoming_trips}, %{assigns: %{params: params}} = socket) do
+  def handle_info(
+        {:upcoming_trips, upcoming_trips, route_counts_for_trips},
+        %{assigns: %{params: params}} = socket
+      ) do
     filtered_upcoming_trips = filter_trips(upcoming_trips, params)
 
     socket =
       socket
       |> assign(:upcoming_trips, upcoming_trips)
       |> assign(:filtered_trips, filtered_upcoming_trips)
+      |> assign(:route_counts, route_counts_for_trips)
 
     {:noreply, socket}
   end
@@ -189,7 +217,7 @@ defmodule MtaClientWeb.Live.Stations do
   defp filter_for_route(trips_by_station, %{route_filter: ""}), do: trips_by_station
 
   defp filter_for_route(trips_by_station, %{route_filter: route_filter}) do
-    Enum.filter(trips_by_station, fn {s, trips} ->
+    Enum.filter(trips_by_station, fn {_station, trips} ->
       Enum.any?(trips, &(&1.route == route_filter))
     end)
   end
@@ -201,7 +229,7 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp filter_for_station(trips_by_station, %{station_name_filter: station_name_filter}) do
     Enum.filter(trips_by_station, fn
-      {station, [t | _]} ->
+      {_station, [t | _]} ->
         String.contains?(String.downcase(t.station), String.downcase(station_name_filter))
 
       _ ->

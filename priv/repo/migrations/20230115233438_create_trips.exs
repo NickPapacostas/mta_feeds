@@ -9,10 +9,12 @@ defmodule MtaClient.Repo.Migrations.CreateTrips do
       add :route_id, :string
       add :direction, :string
       add :train_id, :string
+      add :trip_destination_id, references(:trip_destinations)
 
       timestamps()
     end
 
-    create unique_index(:trips, [:trip_id, :start_time])
+    create unique_index(:trips, [:trip_id, :start_time, :start_date])
+    create index(:trips, [:trip_destination_id])
   end
 end

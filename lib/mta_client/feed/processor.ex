@@ -1,13 +1,9 @@
 defmodule MtaClient.Feed.Processor do
   require Logger
 
-  import Ecto.Query
-
   alias Ecto.Multi
-  alias MtaClient.Repo
   alias MtaClient.Feed.Parser
   alias MtaClient.{Trips, TripUpdates}
-  alias MtaClient.Trips.{Trip, TripUpdate}
 
   @api_endpoint "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/"
   @yellow_lines_path "nyct%2Fgtfs-nqrw"
@@ -42,8 +38,7 @@ defmodule MtaClient.Feed.Processor do
          # determine feed processed already? 
          %{trips: trips, trip_updates: updates} = result <-
            Parser.parse_feed_entities(decoded_feed.entity) do
-      before_trips = Repo.all(from(t in Trip, select: t.id))
-      Logger.info("Processor processing #{path}, before_trips: #{length(before_trips)}")
+      Logger.info("Processor processing #{path}...")
 
       Multi.new()
       |> Trips.build_multis(trips)
@@ -53,9 +48,6 @@ defmodule MtaClient.Feed.Processor do
       |> TripUpdates.build_multis(updates)
       |> MtaClient.Repo.transaction()
 
-      new_trips = Repo.all(from(t in Trip, where: t.id not in ^before_trips, select: t.id))
-
-      Logger.info("Processor processing #{path} after trips: #{length(new_trips)}")
 
       result
     else

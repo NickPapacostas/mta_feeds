@@ -30,6 +30,7 @@ module.exports = {
     "bg-slate-400",
     "bg-black-400",
     "bg-violet-400",
+    "bg-slate",
     "ring-red-400",
     "ring-green-600",
     "ring-cyan-400",

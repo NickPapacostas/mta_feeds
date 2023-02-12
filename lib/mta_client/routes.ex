@@ -25,6 +25,20 @@ defmodule MtaClient.Routes do
     |> Enum.map(&{&1, route_color(&1)})
   end
 
+  def route_counts_for_trips(upcoming_trips_by_station) do
+    upcoming_trips_by_station
+    |> Enum.flat_map(fn {_station_id, trips} -> trips end)
+    |> Enum.uniq_by(& &1.station_id)
+    |> Enum.reduce(%{}, fn trip, acc ->
+      Map.update(
+        acc,
+        trip.route,
+        1,
+        fn existing -> existing + 1 end
+      )
+    end)
+  end
+
   def route_color(route_id) when route_id in @yellow_routes, do: "yellow-400"
   def route_color(route_id) when route_id in @orange_routes, do: "orange-400"
   def route_color(route_id) when route_id in @red_routes, do: "red-400"
