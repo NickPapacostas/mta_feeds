@@ -34,3 +34,4 @@ npm-debug.log
 /proto_modules/
 /config/*.secret.exs
 /static/
+.DS_Store
