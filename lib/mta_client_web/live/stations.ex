@@ -38,12 +38,12 @@ defmodule MtaClientWeb.Live.Stations do
   defp header(assigns) do
     ~H"""
     <div class="flex justify-center">
-      <a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" target="_blank" class="pb-4 font-bold underline underline-offset-4 decoration-sky-500 text-center ">
+      <a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" target="_blank" class="pb-4 font-bold underline underline-offset-4 text-center ">
         <div  class="">NYC TRAIN TIMES</div>
       </a>  
     </div>
 
-      <div class="pb-8 justify-center ">
+      <div class="pb-4 justify-center ">
         <div class="relative cursor-pointer gap-4 flex justify-center flex-wrap">
         <form phx-change="station_name_filter" phx-submit="save" class="flex justify-center">
           <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Filter stations...">
@@ -52,8 +52,8 @@ defmodule MtaClientWeb.Live.Stations do
         <%= for {route, color} <- Routes.routes_with_color() do %>
           <div class="flex flex-col ">
             <% count_for_rount = Map.get(@route_counts, route, 0) %>
-            <% {color, text_color} = if count_for_rount == 0 do
-              {"bg-slate-800", "text-slate-200"}
+            <%{color, text_color} = if count_for_rount == 0 do
+              {"bg-#{color}", "text-black"}
             else
               {"bg-#{color}", "text-white"}
             end %>

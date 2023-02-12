@@ -16,5 +16,6 @@ defmodule MtaClient.Repo.Migrations.CreateTrips do
 
     create unique_index(:trips, [:trip_id, :start_time, :start_date])
     create index(:trips, [:trip_destination_id])
+    create index(:trips, [:start_date])
   end
 end

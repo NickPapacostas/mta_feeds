@@ -21,7 +21,7 @@ defmodule MtaClient.Broadcast.Server do
 
   @impl true
   def init(_) do
-    # GenServer.cast(self(), :start)
+    GenServer.cast(self(), :start)
     {:ok, %{tick: 0, stopped: false}}
   end
 

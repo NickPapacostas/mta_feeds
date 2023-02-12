@@ -1,10 +1,9 @@
-defmodule MtaClient.Feed.Server do
+defmodule MtaClient.Cleanup.Server do
   require Logger
 
   use GenServer
 
-  alias MtaClient.Feed.Processor
-  alias Phoenix.PubSub
+  alias MtaClient.Cleanup.TripDeleter
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -28,31 +27,29 @@ defmodule MtaClient.Feed.Server do
 
   @impl true
   def handle_cast(:start, state) do
-    Logger.warning("Feed.Server starting...")
-    Process.send(self(), :process_feed, [])
+    Logger.warning("Cleanup.Server starting...")
+    Process.send(self(), :cleanup, [])
     {:noreply, %{state | stopped: false}}
   end
 
   def handle_cast(:stop, state) do
-    Logger.warning("Feed.Server stopping...")
+    Logger.warning("Cleanup.Server stopping...")
     {:noreply, %{state | stopped: true}}
   end
 
   @impl true
-  def handle_info(:process_feed, %{stopped: true} = state) do
-    schedule_feed_processing()
+  def handle_info(:cleanup, %{stopped: true} = state) do
+    schedule_cleanup()
 
     {:noreply, state}
   end
 
-  def handle_info(:process_feed, %{tick: tick} = state) do
-    Processor.process_feeds()
-    schedule_feed_processing()
-    Logger.info("Feed.Server processed feeds...")
+  def handle_info(:cleanup, %{tick: tick} = state) do
+    TripDeleter.delete_old_trips()
     {:noreply, %{state | tick: tick + 1}}
   end
 
-  defp schedule_feed_processing() do
-    Process.send_after(self(), :process_feed, 60_000)
+  defp schedule_cleanup() do
+    Process.send_after(self(), :cleanup, 300_000)
   end
 end

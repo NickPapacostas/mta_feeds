@@ -19,7 +19,8 @@ defmodule MtaClient.Application do
       MtaClientWeb.Endpoint,
       # Start a worker by calling: MtaClient.Worker.start_link(arg)
       {MtaClient.Feed.Supervisor, []},
-      {MtaClient.Broadcast.Supervisor, []}
+      {MtaClient.Broadcast.Supervisor, []},
+      {MtaClient.Cleanup.Supervisor, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
