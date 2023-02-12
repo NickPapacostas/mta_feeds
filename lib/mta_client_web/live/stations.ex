@@ -13,7 +13,7 @@ defmodule MtaClientWeb.Live.Stations do
       ~H"""
       <div class="p-4">
         <.header route_filter={assigns.params.route_filter} route_counts={assigns.route_counts} station_name_filter={assigns.params.station_name_filter}/>
-        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4 ">
           <% filtered_trips = if assigns.params.route_filter || assigns.params.station_name_filter do
             assigns.filtered_trips
           else
@@ -52,10 +52,10 @@ defmodule MtaClientWeb.Live.Stations do
         <%= for {route, color} <- Routes.routes_with_color() do %>
           <div class="flex flex-col ">
             <% count_for_rount = Map.get(@route_counts, route, 0) %>
-            <%{color, text_color} = if count_for_rount == 0 do
-              {"bg-#{color}", "text-black"}
+            <% text_color = if count_for_rount == 0 do
+              "text-black"
             else
-              {"bg-#{color}", "text-white"}
+              "text-white"
             end %>
             <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
               <div class={"#{text_color} text-2xl"}><%= route %></div>
@@ -126,7 +126,7 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp route_circle_class(route, color, route_filter) do
     route_class =
-      "flex place-content-center w-8 h-8 #{color} transition-all rounded-full ring-offset-2 mb-2 "
+      "flex place-content-center w-8 h-8 bg-#{color} transition-all rounded-full ring-offset-2 mb-2 "
 
     if route == route_filter do
       route_class <> "ring-#{color} ring-4 ring-offset-1"
