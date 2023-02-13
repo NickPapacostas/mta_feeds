@@ -58,6 +58,7 @@ defmodule MtaClient.Stations do
 
     upcoming_trips_query
     |> Repo.all()
+    |> Enum.uniq_by(fn t -> {t.trip_id, t.station_id} end)
     |> Enum.group_by(& &1.station_id)
     |> Enum.sort()
   end

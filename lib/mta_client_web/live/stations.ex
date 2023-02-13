@@ -13,7 +13,7 @@ defmodule MtaClientWeb.Live.Stations do
       ~H"""
       <div class="p-4">
         <.header route_filter={assigns.params.route_filter} route_counts={assigns.route_counts} station_name_filter={assigns.params.station_name_filter}/>
-        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4 ">
+        <div class="grid place-content-center md:grid-cols-4 gap-4 ">
           <% filtered_trips = if assigns.params.route_filter || assigns.params.station_name_filter do
             assigns.filtered_trips
           else
@@ -37,16 +37,16 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp header(assigns) do
     ~H"""
-    <div class="flex justify-center">
-      <a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" target="_blank" class="pb-4 font-bold underline underline-offset-4 text-center ">
-        <div  class="">NYC TRAIN TIMES</div>
-      </a>  
+    <div class="flex py-4 justify-between">
+        <div></div>
+        <div> <a href="/" class="pl-12 font-bold"> NYC TRAIN TIMES </a></div>
+        <div>(<a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" class="text-sm underline decoration-sky-500" target="_blank">about</a>)</div>
     </div>
 
       <div class="pb-4 justify-center ">
         <div class="relative cursor-pointer gap-4 flex justify-center flex-wrap">
         <form phx-change="station_name_filter" phx-submit="save" class="flex justify-center">
-          <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Filter stations...">
+          <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Search stations...">
         </form>
 
         <%= for {route, color} <- Routes.routes_with_color() do %>
@@ -70,36 +70,35 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp upcoming_trips_for_station(assigns) do
     ~H"""
-    <div class="p-4 flex flex-col border-black border-4 ">
+    <div class="p-2 flex flex-col border-black border-4 ">
       <div class =" text-center rounded-lg "> 
         <div class="text-black-100 underline font-bold"> <%= @station %> </div>
       </div>
       <div>
-        <ul class=" divide-black divide-y">
+        <ul class="divide-black divide-y">
           <%= for trip <- Enum.take(@trips, 5) do %>
             <% color = Routes.route_color(trip.route) %>
             <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl  flex justify-center items-center " %>
 
-            <li class="py-3 sm:py-4">
-               <div class="flex justify-center gap-5">
-                   <div class="flex-shrink-0">
+            <li class="p-3 hover:bg-sky-200 sm:py-4 flex justify-between overflow-hidden">
+               <div class="flex gap-5">
+                   <div class="">
                        <div class={route_class}>
                          <%= trip.route %>
                        </div>
                    </div>
-                   <div >
+                   <div>
                        <div>
                           <% destination = trip.destination || Routes.route_destination(trip.route, trip.direction) %>
                           <%= destination %> 
                        </div>
                    </div>
-                   <div >
-                       <div>
-                          <% arrival_time = time_until_arrival(trip.arrival_time) %>
-                          <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
-                       </div>
+              </div>
+               <div class="pl-2 flex">
+                   <div class="">
+                      <% arrival_time = time_until_arrival(trip.arrival_time) %>
+                      <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
                    </div>
-
                </div>
             </li>
           <% end %>

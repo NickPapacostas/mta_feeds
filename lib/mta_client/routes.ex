@@ -79,6 +79,7 @@ defmodule MtaClient.Routes do
       "L" => %{north: "8 Av", south: "Canarsie-Rockaway Pkwy"},
       "M" => %{north: "Myrtle Av", south: "Middle Village-Metropolitan Av"},
       "N" => %{north: "Astoria-Ditmars Blvd", south: "Coney Island-Stillwell Av"},
+      "W" => %{north: "Astoria-Ditmars Blvd", south: "34 St-Herald Sq"},
       "Q" => %{north: "96 St", south: "Coney Island-Stillwell Av"},
       "R" => %{north: "Forest Hills-71 av", south: "Bay Ridge-95 St"},
       "S" => %{north: "Times Sq-42 St", south: "Grand Central-42 St"}
