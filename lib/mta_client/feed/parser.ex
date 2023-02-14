@@ -26,7 +26,7 @@ defmodule MtaClient.Feed.Parser do
           acc.alerts
         end
 
-      if trip do
+      if trip && !Enum.empty?(trip_updates) do
         %{
           trips: acc.trips ++ [trip],
           trip_updates: acc.trip_updates ++ trip_updates,

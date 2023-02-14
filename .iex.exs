@@ -7,3 +7,4 @@ alias MtaClient.Stations
 alias MtaClient.Stations.Station
 alias MtaClient.Feed.Server
 Server.stop()
+MtaClient.Broadcast.Server.stop()

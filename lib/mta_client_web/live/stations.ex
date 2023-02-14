@@ -40,11 +40,11 @@ defmodule MtaClientWeb.Live.Stations do
     <div class="flex py-4 justify-between">
         <div></div>
         <div> <a href="/" class="pl-12 font-bold"> NYC TRAIN TIMES </a></div>
-        <div>(<a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" class="text-sm underline decoration-sky-500" target="_blank">about</a>)</div>
+        <div class="mw-12">(<a href="https://github.com/NickPapacostas/mta_feeds/blob/main/README.md" class="text-sm underline decoration-sky-500" target="_blank">about</a>)</div>
     </div>
 
       <div class="pb-4 justify-center ">
-        <div class="relative cursor-pointer gap-4 flex justify-center flex-wrap">
+        <div class="relative gap-4 flex justify-center flex-wrap">
         <form phx-change="station_name_filter" phx-submit="save" class="flex justify-center">
           <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Search stations...">
         </form>
@@ -78,28 +78,37 @@ defmodule MtaClientWeb.Live.Stations do
         <ul class="divide-black divide-y">
           <%= for trip <- Enum.take(@trips, 5) do %>
             <% color = Routes.route_color(trip.route) %>
-            <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl  flex justify-center items-center " %>
+            <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl  flex justify-center items-center" %>
 
-            <li class="p-3 hover:bg-sky-200 sm:py-4 flex justify-between overflow-hidden">
-               <div class="flex gap-5">
-                   <div class="">
-                       <div class={route_class}>
-                         <%= trip.route %>
-                       </div>
-                   </div>
-                   <div>
-                       <div>
-                          <% destination = trip.destination || Routes.route_destination(trip.route, trip.direction) %>
-                          <%= destination %> 
-                       </div>
-                   </div>
+            <li class="p-3 sm:py-4 flex justify-between overflow-hidden items-center">
+              <div>
+                <div class="flex gap-5 items-center">
+                  <div>
+                    <div class={route_class}>
+                       <%= trip.route %>
+                    </div>
+                  </div>
+                  <div>
+                    <% destination = trip.destination || Routes.route_destination(trip.route, trip.direction) %>
+                    <%= destination %> 
+                  </div>
+                </div>
               </div>
-               <div class="pl-2 flex">
-                   <div class="">
-                      <% arrival_time = time_until_arrival(trip.arrival_time) %>
-                      <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
-                   </div>
-               </div>
+              <div class="pl-2 flex items-center">
+                <div class="pr-4 mw-8">
+                  <% arrival_time = time_until_arrival(trip.arrival_time) %>
+                  <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
+                </div>
+                <div class="flex flex-col divide-y divide-black justify-center">
+
+                  <%= Enum.map(trip.destination_boroughs || [], fn b -> %>
+                    <div class="">
+                      <%= display_borough(b) %> 
+                    </div>
+                  <% end) %>
+                </div>
+              </div>
+
             </li>
           <% end %>
         </ul>
@@ -109,6 +118,10 @@ defmodule MtaClientWeb.Live.Stations do
   end
 
   ####  View Helpers 
+
+  defp display_borough("M"), do: "Mh"
+  defp display_borough("Q"), do: "Qn"
+  defp display_borough(borough), do: borough
 
   defp route_click_fn(route, route_filter) do
     value =
@@ -125,7 +138,7 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp route_circle_class(route, color, route_filter) do
     route_class =
-      "flex place-content-center w-8 h-8 bg-#{color} transition-all rounded-full ring-offset-2 mb-2 "
+      "flex place-content-center w-8 h-8 bg-#{color} cursor-pointer  transition-all rounded-full ring-offset-2 mb-2 "
 
     if route == route_filter do
       route_class <> "ring-#{color} ring-4 ring-offset-1"

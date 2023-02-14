@@ -17,7 +17,6 @@ defmodule MtaClient.TripUpdates do
           from(
             t in Trip,
             where: t.trip_id == ^trip_id,
-            order_by: [desc: :start_date, desc: :start_time],
             select: t.id,
             limit: 1
           )
@@ -28,6 +27,48 @@ defmodule MtaClient.TripUpdates do
       else
         acc_multi
       end
+    end)
+  end
+
+  def populate_destination_boroughs() do
+    from(
+      tu in TripUpdate,
+      where: is_nil(tu.destination_boroughs),
+      join: s in assoc(tu, :station),
+      order_by: tu.arrival_time,
+      preload: [station: s]
+    )
+    |> Repo.all()
+    |> Enum.group_by(& &1.trip_id)
+    |> Enum.map(fn {trip_id, updates} ->
+      destination_boroughs_for_updates(updates)
+    end)
+  end
+
+  defp destination_boroughs_for_updates(updates) do
+    updates
+    |> Enum.with_index()
+    |> Enum.map(fn {update, index} ->
+      future_other_boroughs =
+        updates
+        |> Enum.slice(index..-1)
+        |> Enum.map(fn tu -> tu.station.borough end)
+        |> Enum.uniq()
+        |> Enum.reject(&(&1 == update.station.borough))
+
+      destination_boroughs =
+        case future_other_boroughs do
+          [] -> [update.station.borough]
+          _ -> future_other_boroughs
+        end
+
+      update_boroughs_changeset =
+        TripUpdate.changeset(
+          update,
+          %{destination_boroughs: destination_boroughs}
+        )
+
+      Repo.update(update_boroughs_changeset)
     end)
   end
 

@@ -52,7 +52,8 @@ defmodule MtaClient.Stations do
           direction: t.direction,
           trip_id: t.trip_id,
           trip_start: t.start_time,
-          train_id: t.train_id
+          train_id: t.train_id,
+          destination_boroughs: u.destination_boroughs
         }
       )
 

@@ -13,11 +13,14 @@ defmodule MtaClient.Trips.TripUpdate do
     :departure_time
   ]
 
+  @optional_fields [:destination_boroughs]
+
   schema "trip_updates" do
     belongs_to(:trip, Trip)
     belongs_to(:station, Station)
     field :arrival_time, :naive_datetime_usec
     field :departure_time, :naive_datetime_usec
+    field :destination_boroughs, {:array, :string}
 
     timestamps()
   end
@@ -26,7 +29,7 @@ defmodule MtaClient.Trips.TripUpdate do
     trip
     |> cast(
       attrs,
-      @required_fields
+      @required_fields ++ @optional_fields
     )
     |> validate_required(@required_fields)
   end

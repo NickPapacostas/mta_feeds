@@ -20,10 +20,7 @@ defmodule MtaClient.Trips do
 
         trip_multi =
           Multi.new()
-          |> Multi.insert(multi_key, changeset,
-            on_conflict: :nothing,
-            conflict_target: [:trip_id, :start_time, :start_date]
-          )
+          |> Multi.insert(multi_key, changeset, on_conflict: :nothing)
 
         Multi.append(acc_multi, trip_multi)
       else
