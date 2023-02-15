@@ -108,7 +108,7 @@ defmodule MtaClient.Feed.Parser do
         end
 
       departure_time =
-        if update.departure do
+        if update.departure && update.departure.time do
           Map.get(update.departure, :time)
           |> DateTime.from_unix!()
           |> DateTime.to_naive()

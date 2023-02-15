@@ -88,24 +88,25 @@ defmodule MtaClientWeb.Live.Stations do
                        <%= trip.route %>
                     </div>
                   </div>
-                  <div>
+                  <div class="flex">
                     <% destination = trip.destination || Routes.route_destination(trip.route, trip.direction) %>
-                    <%= destination %> 
+                    <div><%= destination %> </div>
                   </div>
                 </div>
               </div>
-              <div class="pl-2 flex items-center">
-                <div class="pr-4 mw-8">
+              <div class="flex gap-4 items-center">
+                <%= if trip.destination_boroughs && trip.destination_boroughs != [] do %>
+                  <div class="flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                    </svg>
+                      <% boroughs_string = trip.destination_boroughs |> Enum.map(&display_borough/1) |> Enum.join(", ") %>
+                      <%= boroughs_string %>
+                  </div>
+                <% end %>
+                <div class="pl-4 mw-8">
                   <% arrival_time = time_until_arrival(trip.arrival_time) %>
                   <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
-                </div>
-                <div class="flex flex-col divide-y divide-black justify-center">
-
-                  <%= Enum.map(trip.destination_boroughs || [], fn b -> %>
-                    <div class="">
-                      <%= display_borough(b) %> 
-                    </div>
-                  <% end) %>
                 </div>
               </div>
 
