@@ -45,6 +45,7 @@ defmodule MtaClient.Stations do
         select: %{
           station: s.name,
           station_id: s.gtfs_stop_id,
+          borough: s.borough,
           arrival_time: u.arrival_time,
           departure_time: u.departure_time,
           route: t.route_id,

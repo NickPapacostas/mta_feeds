@@ -74,8 +74,15 @@ defmodule MtaClient.Feed.Parser do
               direction = parse_direction(String.at(second_half, 0))
               {direction, nil}
 
-            _ ->
-              {nil, nil}
+            _maybe_single_dot ->
+              case String.split(trip.trip_id, ".") do
+                [_, second_half] ->
+                  direction = parse_direction(String.at(second_half, 0))
+                  {direction, nil}
+
+                _ ->
+                  {nil, nil}
+              end
           end
       end
 
@@ -122,24 +129,6 @@ defmodule MtaClient.Feed.Parser do
       }
     end)
   end
-
-  # defp parse_vehicle_position(%FeedEntity{
-  #        vehicle: %VehiclePosition{} = vp
-  #      }) do
-  #   case vp do
-  #     %{trip: %TripDescriptor{nyct_trip_descriptor: %NyctTripDescriptor{train_id: train_id}}} ->
-  #       %{
-  #         train_id: train_id,
-  #         current_status: parse_status(vp.current_status)
-  #       }
-
-  #     _ ->
-  #       Logger.error("Feed.Parser unable to parse VehiclePosition #{inspect(vp)}")
-  #       nil
-  #   end
-  # end
-
-  # defp parse_vehicle_position(_), do: nil
 
   # e.g. "20230115" 
   defp parse_date_string(date_string) do

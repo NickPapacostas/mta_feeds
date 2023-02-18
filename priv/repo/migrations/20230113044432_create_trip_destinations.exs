@@ -9,7 +9,6 @@ defmodule MtaClient.Repo.Migrations.CreateTripDestinations do
       timestamps()
     end
 
-    create unique_index(:trip_destinations, [:trip_id_string, :destination_name])
     create index(:trip_destinations, :trip_id_string)
   end
 end

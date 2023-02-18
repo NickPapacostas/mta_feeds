@@ -30,11 +30,30 @@ defmodule MtaClient.Trips do
     end)
   end
 
-  defp append_trip_destination_id(%{trip_id: trip_id} = trip_map) do
+  defp append_trip_destination_id(
+         %{
+           trip_id: trip_id,
+           route_id: route,
+           direction: direction
+         } = trip_map
+       ) do
+    service_code = trip_to_service_code(trip_map)
+
     destination_query =
       from(
         td in TripDestination,
-        where: td.trip_id_string == ^trip_id,
+        where: td.service_code == ^service_code,
+        where: td.route == ^route,
+        where: td.direction == ^direction,
+        # There are often two destinations for 
+        # a service code / direction / route combo
+        # and it is hard to tell which is the right 
+        # one as the trip id isn't specific enough
+        # this hack seems to yield better results
+        # e.g. "R" "sourth" goes to bay ridge not whitehall
+        # fahgahdsakes
+        order_by: [desc: td.id],
+        limit: 1,
         select: td.id
       )
 
@@ -49,5 +68,26 @@ defmodule MtaClient.Trips do
 
   defp append_trip_destination_id(unkown_map) do
     unkown_map
+  end
+
+  defp trip_to_service_code(%{start_date: nil}) do
+    :weekday
+  end
+
+  defp trip_to_service_code(%{start_date: start_date}) do
+    start_date
+    |> Date.day_of_week()
+    |> then(fn day_of_week_int ->
+      case day_of_week_int do
+        6 ->
+          :saturday
+
+        7 ->
+          :sunday
+
+        _ ->
+          :weekday
+      end
+    end)
   end
 end

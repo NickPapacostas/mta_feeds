@@ -22,7 +22,7 @@ defmodule MtaClient.Trips.Trip do
     field :start_time, :naive_datetime_usec
     field :start_date, :date
     field :route_id, :string
-    field :direction, :string
+    field :direction, Ecto.Enum, values: [:north, :south]
     field :train_id, :string
 
     timestamps()
