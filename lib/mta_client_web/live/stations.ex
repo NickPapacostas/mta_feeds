@@ -80,7 +80,7 @@ defmodule MtaClientWeb.Live.Stations do
             <% color = Routes.route_color(trip.route) %>
             <% route_class = "bg-#{color} w-8 h-8 text-white rounded-full shadow-2xl  flex justify-center items-center" %>
 
-            <li class="p-3 sm:py-4 flex justify-between overflow-hidden items-center">
+            <li class="p-3 sm:py-4 flex justify-between overflow-hidden items-center" alt={trip.trip_id}>
               <div>
                 <div class="flex gap-5 items-center">
                   <div>
@@ -100,11 +100,11 @@ defmodule MtaClientWeb.Live.Stations do
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                     </svg>
-                      <% boroughs_string = trip.destination_boroughs |> Enum.map(&display_borough/1) |> Enum.join(", ") %>
+                      <% boroughs_string = boroughs_string_for_trip(trip) %>
                       <%= boroughs_string %>
                   </div>
                 <% end %>
-                <div class="pl-2 mw-16">
+                <div class="pl-4 font-bold">
                   <% arrival_time = time_until_arrival(trip.arrival_time) %>
                   <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
                 </div>
@@ -119,6 +119,21 @@ defmodule MtaClientWeb.Live.Stations do
   end
 
   ####  View Helpers 
+
+  defp boroughs_string_for_trip(trip) do
+    case trip.destination_boroughs do
+      ["M"] when trip.borough == "M" ->
+        case trip.direction do
+          :north -> "Uptown"
+          :south -> "Downtown"
+        end
+
+      [_ | _] ->
+        trip.destination_boroughs
+        |> Enum.map(&display_borough/1)
+        |> Enum.join(", ")
+    end
+  end
 
   defp display_borough("M"), do: "Mh"
   defp display_borough("Q"), do: "Qn"

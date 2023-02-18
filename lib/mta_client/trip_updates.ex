@@ -111,7 +111,7 @@ defmodule MtaClient.TripUpdates do
         trip_update_multi =
           Multi.new()
           |> Multi.insert(multi_key, changeset,
-            on_conflict: :replace_all,
+            on_conflict: {:replace_all_except, [:destination_boroughs]},
             conflict_target: [:trip_id, :station_id]
           )
 

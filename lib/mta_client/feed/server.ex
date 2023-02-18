@@ -4,6 +4,7 @@ defmodule MtaClient.Feed.Server do
   use GenServer
 
   alias MtaClient.Feed.Processor
+  alias MtaClient.TripUpdates
   alias Phoenix.PubSub
 
   def start_link(_) do
@@ -47,6 +48,7 @@ defmodule MtaClient.Feed.Server do
 
   def handle_info(:process_feed, %{tick: tick} = state) do
     Processor.process_feeds()
+    TripUpdates.populate_destination_boroughs(60)
     schedule_feed_processing()
     Logger.info("Feed.Server processed feeds...")
     {:noreply, %{state | tick: tick + 1}}
