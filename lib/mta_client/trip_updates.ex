@@ -45,7 +45,7 @@ defmodule MtaClient.TripUpdates do
     )
     |> Repo.all()
     |> Enum.group_by(& &1.trip_id)
-    |> Enum.map(fn {trip_id, updates} ->
+    |> Enum.map(fn {_trip_id, updates} ->
       destination_boroughs_for_updates(updates)
     end)
   end

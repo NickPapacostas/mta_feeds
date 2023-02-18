@@ -4,8 +4,7 @@ defmodule MtaClient.Feed.Parser do
   alias TransitRealtime.{
     FeedEntity,
     TripUpdate,
-    TripDescriptor,
-    VehiclePosition
+    TripDescriptor
   }
 
   alias TransitRealtime.TripUpdate.StopTimeUpdate
