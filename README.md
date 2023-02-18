@@ -7,8 +7,7 @@ A small application for:
   - Storing trips and updates in postgres
   - Displaying upcoming train times for each station (with filtering by station name or route)
 
-
-<img width="1400" alt="Screen Shot 2023-02-10 at 11 27 00 PM" src="https://user-images.githubusercontent.com/1441582/218239881-be6943cd-522d-4295-985e-57fb9508ab57.png">
+<img width="1400" alt="Screen Shot 2023-02-14 at 12 00 46 AM" src="https://user-images.githubusercontent.com/1441582/219898714-6833fd99-62af-4137-a7eb-91a2dc36e09f.png">
 
 </br>
 
@@ -49,8 +48,9 @@ The UI filters for route and station name are wired to update the url parameters
 
 
 ## Known issues
- - Fly.io free tier struggling to run things which causes some 500s
- - On mobile browsers when de-selecting a route filter, the UI still shows the highlighted circle around the previous filter. I'm not sure why. 
- - Some trains show the wrong destinations. The example I know of is the "M" train to Forest Hills showing as Myrtle Av. However when I look at the MTA csvs that seems to be correct. On the MTA live map it the trains show as "Forest Hills" though so I'm missing something. 
- - I am not sure how to handle trips with  no start times, need to investigate if this means they're in the future or what. It leads to duplicate Trip records with nil start times. I need to upgrade my local postgres to use :nulls_distinct to at least stop the Trip bloat.
- - the width of cards changes with the longest stop name making things jerk around
+ - [x] Fly.io free tier struggling to run things which causes some 500s
+ - [x] On mobile browsers when de-selecting a route filter, the UI still shows the highlighted circle around the previous filter. I'm not sure why. 
+ - [ ] Some trains show the wrong destinations. The example I know of is the "M" train to Forest Hills showing as Myrtle Av. However when I look at the MTA csvs that seems to be correct. On the MTA live map it the trains show as "Forest Hills" though so I'm missing something. 
+ - [ ] I am not sure how to handle trips with  no start times, need to investigate if this means they're in the future or what. It leads to duplicate Trip records with nil start times. I need to upgrade my local postgres to use :nulls_distinct to at least stop the Trip bloat.
+ - [ ] the width of cards changes with the longest stop name making things jerk around
+ - [ ] Mahattan destinations should show uptown/downtown
