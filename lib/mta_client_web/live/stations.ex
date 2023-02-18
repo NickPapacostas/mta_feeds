@@ -94,9 +94,9 @@ defmodule MtaClientWeb.Live.Stations do
                   </div>
                 </div>
               </div>
-              <div class="flex gap-4 items-center">
+              <div class="flex items-center">
                 <%= if trip.destination_boroughs && trip.destination_boroughs != [] do %>
-                  <div class="flex">
+                  <div class="pl-2 flex mw-16">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                     </svg>
@@ -104,7 +104,7 @@ defmodule MtaClientWeb.Live.Stations do
                       <%= boroughs_string %>
                   </div>
                 <% end %>
-                <div class="pl-4 mw-8">
+                <div class="pl-2 mw-16">
                   <% arrival_time = time_until_arrival(trip.arrival_time) %>
                   <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
                 </div>

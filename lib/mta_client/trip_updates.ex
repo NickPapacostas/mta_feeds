@@ -30,10 +30,15 @@ defmodule MtaClient.TripUpdates do
     end)
   end
 
-  def populate_destination_boroughs() do
+  def populate_destination_boroughs(minutes_ahead) do
+    now = NaiveDateTime.utc_now()
+    look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
+
     from(
       tu in TripUpdate,
       where: is_nil(tu.destination_boroughs),
+      where: tu.arrival_time > ^now,
+      where: tu.arrival_time < ^look_ahead_threshold,
       join: s in assoc(tu, :station),
       order_by: tu.arrival_time,
       preload: [station: s]
