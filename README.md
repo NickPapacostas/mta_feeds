@@ -32,7 +32,7 @@ In order to retrieve and store the necessary data the application:
 
 This is done via a single GenServer named `MtaClient.Feed.Server` which queries the realtime feed every 60 seconds (the interval for updates according to the API). 
 
-The GenServer calls the `MtaClient.Feed.Processor` which will update the appropriate tables with latest data. 
+The Feed.Server calls the `Feed.Processor` which will update the appropriate tables with latest data. 
 
 One note is that these route calls could easily be made parallel using Task.async or similar, but due to cloud resource constraints it's just serial for now. 
 
