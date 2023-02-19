@@ -44,24 +44,26 @@ defmodule MtaClientWeb.Live.Stations do
     </div>
 
       <div class="pb-4 justify-center ">
-        <div class="relative gap-4 flex justify-center flex-wrap">
-        <form phx-change="station_name_filter" phx-submit="save" class="flex justify-center">
-          <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Search stations...">
-        </form>
-
-        <%= for {route, color} <- Routes.routes_with_color() do %>
-          <div class="flex flex-col ">
-            <% count_for_rount = Map.get(@route_counts, route, 0) %>
-            <% text_color = if count_for_rount == 0 do
-              "text-black"
-            else
-              "text-white"
-            end %>
-            <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
-              <div class={"#{text_color} text-2xl"}><%= route %></div>
-            </div>
+        <div class="relative gap-4 flex items-center justify-center flex-wrap">
+          <div class="flex">
+            <form phx-change="station_name_filter" phx-submit="save">
+              <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Search stations...">
+            </form>
+            <button phx-click={JS.push("clear_station_name", [])} name="clear_name" class="text-slate-600 pl-2 text-lg  rounded-full">x</button>
           </div>
-        <% end %>
+          <%= for {route, color} <- Routes.routes_with_color() do %>
+            <div class="">
+              <% count_for_rount = Map.get(@route_counts, route, 0) %>
+              <% text_color = if count_for_rount == 0 do
+                "text-black"
+              else
+                "text-white"
+              end %>
+              <div phx-click={route_click_fn(route, @route_filter).()} class={route_circle_class(route, color, @route_filter)} >
+                <div class={"#{text_color} text-2xl"}><%= route %></div>
+              </div>
+            </div>
+          <% end %>
       </div>
     </div>
 
@@ -154,7 +156,7 @@ defmodule MtaClientWeb.Live.Stations do
 
   defp route_circle_class(route, color, route_filter) do
     route_class =
-      "flex place-content-center w-8 h-8 bg-#{color} cursor-pointer  transition-all rounded-full ring-offset-2 mb-2 "
+      "flex items-center place-content-center w-8 h-8 bg-#{color} cursor-pointer  transition-all rounded-full ring-offset-2 "
 
     if route == route_filter do
       route_class <> "ring-#{color} ring-4 ring-offset-1"
@@ -226,6 +228,12 @@ defmodule MtaClientWeb.Live.Stations do
 
   def handle_event("station_name_filter", %{"station_name_filter" => name_string}, socket) do
     params = Map.merge(socket.assigns.params, %{station_name_filter: name_string})
+
+    {:noreply, push_patch(socket, to: "/#{query_params(params)}", replace: true)}
+  end
+
+  def handle_event("clear_station_name", _, socket) do
+    params = Map.merge(socket.assigns.params, %{station_name_filter: nil})
 
     {:noreply, push_patch(socket, to: "/#{query_params(params)}", replace: true)}
   end
