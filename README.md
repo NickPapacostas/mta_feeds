@@ -48,9 +48,11 @@ The UI filters for route and station name are wired to update the url parameters
 
 
 ## Known issues
- - [x] Fly.io free tier struggling to run things which causes some 500s
+ - [ ] Fly.io free tier struggling to run things which causes some 500s
+    - I've upgraded to a paid db but saw an unrecoverable crash after a few days, i rebuilt it and will see if it happens again.
  - [x] On mobile browsers when de-selecting a route filter, the UI still shows the highlighted circle around the previous filter. I'm not sure why. 
- - [ ] Some trains show the wrong destinations. The example I know of is the "M" train to Forest Hills showing as Myrtle Av. However when I look at the MTA csvs that seems to be correct. On the MTA live map it the trains show as "Forest Hills" though so I'm missing something. 
+ - [x] Some trains show the wrong destinations. The example I know of is the "M" train to Forest Hills showing as Myrtle Av. However when I look at the MTA csvs that seems to be correct. On the MTA live map it the trains show as "Forest Hills" though so I'm missing something. 
+    - This was caused by me requiring "departure" structs for all updates, which (obviously in retrospect) terminal stops don't have. 
  - [ ] I am not sure how to handle trips with  no start times, need to investigate if this means they're in the future or what. It leads to duplicate Trip records with nil start times. I need to upgrade my local postgres to use :nulls_distinct to at least stop the Trip bloat.
  - [ ] the width of cards changes with the longest stop name making things jerk around
- - [ ] Mahattan destinations should show uptown/downtown
+ - [x] Mahattan destinations should show uptown/downtown
