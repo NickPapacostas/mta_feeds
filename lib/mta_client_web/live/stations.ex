@@ -13,7 +13,7 @@ defmodule MtaClientWeb.Live.Stations do
       ~H"""
       <div class="p-4">
         <.header route_filter={assigns.params.route_filter} route_counts={assigns.route_counts} station_name_filter={assigns.params.station_name_filter}/>
-        <div class="grid place-content-center md:grid-cols-4 gap-4 ">
+        <div class="grid place-content-center md:grid-cols-3 lg:grid-cols-4 gap-4 ">
           <% filtered_trips = if assigns.params.route_filter || assigns.params.station_name_filter do
             assigns.filtered_trips
           else
@@ -111,7 +111,6 @@ defmodule MtaClientWeb.Live.Stations do
                   <%= if arrival_time == 0, do: "arriving", else: "#{arrival_time} min" %> 
                 </div>
               </div>
-
             </li>
           <% end %>
         </ul>

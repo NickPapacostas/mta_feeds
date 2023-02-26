@@ -6,12 +6,15 @@ defmodule MtaClient.Trips do
   alias Ecto.Multi
 
   alias MtaClient.Repo
-  alias MtaClient.Trips.{Trip, TripDestination}
+  alias MtaClient.Trips.{Trip, TripUpdate}
+
+  def without_destination() do
+    Repo.all(from(t in Trip, where: is_nil(t.destination)))
+  end
 
   def build_multis(multi, trip_maps) do
     trip_maps
     |> Enum.uniq_by(& &1.trip_id)
-    |> Enum.map(&append_trip_destination_id/1)
     |> Enum.reduce(multi, fn trip_map, acc_multi ->
       changeset = Trip.changeset(%Trip{}, trip_map)
 
@@ -30,64 +33,39 @@ defmodule MtaClient.Trips do
     end)
   end
 
-  defp append_trip_destination_id(
-         %{
-           trip_id: trip_id,
-           route_id: route,
-           direction: direction
-         } = trip_map
-       ) do
-    service_code = trip_to_service_code(trip_map)
-
-    destination_query =
+  def populate_destinations() do
+    l =
       from(
-        td in TripDestination,
-        where: td.service_code == ^service_code,
-        where: td.route == ^route,
-        where: td.direction == ^direction,
-        # There are often two destinations for 
-        # a service code / direction / route combo
-        # and it is hard to tell which is the right 
-        # one as the trip id isn't specific enough
-        # this hack seems to yield better results
-        # e.g. "R" "sourth" goes to bay ridge not whitehall
-        # fahgahdsakes
-        order_by: [desc: td.id],
-        limit: 1,
-        select: td.id
+        t in Trip,
+        as: :trips,
+        where: is_nil(t.destination),
+        inner_lateral_join:
+          last_station in subquery(
+            from(
+              u in TripUpdate,
+              where: u.trip_id == parent_as(:trips).id,
+              order_by: [desc: u.arrival_time],
+              join: s in assoc(u, :station),
+              limit: 1,
+              select: s.name
+            )
+          ),
+        select: {t, last_station.name}
       )
+      |> Repo.all()
+      |> Enum.map(fn {trip, name} ->
+        # changeset =
+        #   if trip.direction == :north do
+        #     Trip.changeset(trip, %{destination: north_direction_label})
+        #   else
+        #     Trip.changeset(trip, %{destination: south_direction_label})
+        #   end
 
-    case Repo.one(destination_query) do
-      nil ->
-        trip_map
-
-      td_id ->
-        Map.put(trip_map, :trip_destination_id, td_id)
-    end
+        changeset = Trip.changeset(trip, %{destination: name})
+        Repo.update(changeset)
+      end)
   end
 
-  defp append_trip_destination_id(unkown_map) do
-    unkown_map
-  end
-
-  defp trip_to_service_code(%{start_date: nil}) do
-    :weekday
-  end
-
-  defp trip_to_service_code(%{start_date: start_date}) do
-    start_date
-    |> Date.day_of_week()
-    |> then(fn day_of_week_int ->
-      case day_of_week_int do
-        6 ->
-          :saturday
-
-        7 ->
-          :sunday
-
-        _ ->
-          :weekday
-      end
-    end)
+  defp append_destination(trip_with_updates) do
   end
 end

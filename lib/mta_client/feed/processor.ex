@@ -48,6 +48,7 @@ defmodule MtaClient.Feed.Processor do
       |> TripUpdates.build_multis(updates)
       |> MtaClient.Repo.transaction()
 
+      Trips.populate_destinations()
 
       result
     else

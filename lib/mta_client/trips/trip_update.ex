@@ -9,11 +9,10 @@ defmodule MtaClient.Trips.TripUpdate do
     # for now ignore updates for unknown stations
     # https://www.patrickweaver.net/blog/making-a-real-time-nyc-subway-map-with-real-weird-nyc-subway-data/
     :station_id,
-    :arrival_time,
-    :departure_time
+    :arrival_time
   ]
 
-  @optional_fields [:destination_boroughs]
+  @optional_fields [:destination_boroughs, :departure_time]
 
   schema "trip_updates" do
     belongs_to(:trip, Trip)
