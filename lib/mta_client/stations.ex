@@ -30,6 +30,7 @@ defmodule MtaClient.Stations do
 
   def upcoming_trips_by_station(minutes_ahead) do
     now = NaiveDateTime.utc_now()
+    a_minute_ago = NaiveDateTime.add(now, -1, :minute)
     look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
 
     upcoming_trips_query =
@@ -42,15 +43,17 @@ defmodule MtaClient.Stations do
         where: u.arrival_time < ^look_ahead_threshold,
         order_by: [asc: u.arrival_time],
         select: %{
-          station: s.name,
-          station_id: s.gtfs_stop_id,
-          borough: s.borough,
+          station: %{
+            name: s.name,
+            gtfs_stop_id: s.gtfs_stop_id,
+            borough: s.borough,
+            north_direction_label: s.north_direction_label,
+            south_direction_label: s.south_direction_label
+          },
           arrival_time: u.arrival_time,
-          departure_time: u.departure_time,
           route: t.route_id,
           direction: t.direction,
           trip_id: t.trip_id,
-          trip_start: t.start_time,
           destination: t.destination,
           destination_boroughs: u.destination_boroughs
         }
@@ -58,7 +61,8 @@ defmodule MtaClient.Stations do
 
     upcoming_trips_query
     |> Repo.all()
-    |> Enum.group_by(& &1.station_id)
+    |> Enum.uniq_by(&{&1.trip_id, &1.station.gtfs_stop_id})
+    |> Enum.group_by(& &1.station.gtfs_stop_id)
     |> Enum.sort()
   end
 

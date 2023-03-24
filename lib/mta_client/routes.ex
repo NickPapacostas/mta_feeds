@@ -30,7 +30,7 @@ defmodule MtaClient.Routes do
   def route_counts_for_trips(upcoming_trips_by_station) do
     upcoming_trips_by_station
     |> Enum.flat_map(fn {_station_id, trips} -> trips end)
-    |> Enum.uniq_by(& &1.station_id)
+    |> Enum.uniq_by(& &1.station.gtfs_stop_id)
     |> Enum.reduce(%{}, fn trip, acc ->
       Map.update(
         acc,
