@@ -66,6 +66,40 @@ defmodule MtaClient.Trips do
       end)
   end
 
+  def delete_removed_upcoming_trips(recent_trips_payload) do
+    now = NaiveDateTime.utc_now()
+    look_ahead_threshold = NaiveDateTime.add(now, 60, :minute)
+    ongoing_trip_ids = Enum.map(recent_trips_payload, & &1.trip_id)
+    relevant_routes = Enum.map(recent_trips_payload, & &1.route_id)
+
+    trip_ids_to_delete =
+      from(
+        u in TripUpdate,
+        where: u.arrival_time > ^now,
+        where: u.arrival_time < ^look_ahead_threshold,
+        join: t in assoc(u, :trip),
+        where: t.trip_id not in ^ongoing_trip_ids,
+        where: t.route_id in ^relevant_routes,
+        select: t.id,
+        distinct: true
+      )
+      |> Repo.all()
+
+    Repo.delete_all(
+      from(
+        u in TripUpdate,
+        where: u.trip_id in ^trip_ids_to_delete
+      )
+    )
+
+    Repo.delete_all(
+      from(
+        t in Trip,
+        where: t.id in ^trip_ids_to_delete
+      )
+    )
+  end
+
   defp append_destination(trip_with_updates) do
   end
 end

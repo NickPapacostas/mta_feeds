@@ -48,6 +48,8 @@ defmodule MtaClient.Feed.Processor do
       |> TripUpdates.build_multis(updates)
       |> MtaClient.Repo.transaction()
 
+      Trips.delete_removed_upcoming_trips(trips)
+
       Trips.populate_destinations()
 
       result
