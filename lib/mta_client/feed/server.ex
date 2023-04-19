@@ -48,7 +48,7 @@ defmodule MtaClient.Feed.Server do
 
   def handle_info(:process_feed, %{tick: tick} = state) do
     Processor.process_feeds()
-    TripUpdates.populate_destination_boroughs(120)
+    # TripUpdates.populate_destination_boroughs(120)
     schedule_feed_processing()
     Logger.info("Feed.Server processed feeds...")
     {:noreply, %{state | tick: tick + 1}}

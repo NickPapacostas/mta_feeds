@@ -11,9 +11,9 @@ defmodule MtaClientWeb.Live.Stations do
   def render(assigns) do
     if assigns.upcoming_trips do
       ~H"""
-      <div class="p-4">
+      <div class="p-4 flex flex-col">
         <.header route_filter={assigns.params.route_filter} route_counts={assigns.route_counts} station_name_filter={assigns.params.station_name_filter}/>
-        <div class="grid place-content-center md:grid-cols-2 lg:grid-cols-3 gap-4 ">
+        <div class="grid justify-center md:grid-cols-2 lg:grid-cols-3 gap-4 ">
           <% filtered_trips = if assigns.params.route_filter || assigns.params.station_name_filter do
             assigns.filtered_trips
           else
@@ -45,7 +45,7 @@ defmodule MtaClientWeb.Live.Stations do
         <div class="relative gap-4 flex items-center justify-center flex-wrap">
           <div class="flex">
             <form phx-change="station_name_filter" phx-submit="save">
-              <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Search stations...">
+              <input value={@station_name_filter} name="station_name_filter" phx-debounce="500" type="text" class=" rounded border text-sm w-32 bg-orange-100" placeholder="Filter stations">
             </form>
             <button phx-click={JS.push("clear_station_name", [])} name="clear_name" class="text-slate-600 pl-2 text-lg  rounded-full">x</button>
           </div>
@@ -84,19 +84,6 @@ defmodule MtaClientWeb.Live.Stations do
                 <div class="underline font-bold pr-4">
                   <%= direction_label || @station.name %>  
                 </div>
-                <div>
-                  <%= if boroughs_string != "" do %>
-                    <div class="flex">
-                      (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                      </svg>
-                      <%= boroughs_string %>)
-                    </div>
-                  <% end %>
-
-                </div>
-                
               </div>
               <ul class="divide-black divide-y w-full">
                 <%= for trip <- Enum.take(direction_trips, 4) do %>
