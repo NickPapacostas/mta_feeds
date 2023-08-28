@@ -35,3 +35,4 @@ npm-debug.log
 /config/*.secret.exs
 /static/
 .DS_Store
+.db-config

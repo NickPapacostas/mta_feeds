@@ -8,7 +8,7 @@ config :mta_client, MtaClient.Repo,
   database: "mta_client_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 2
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
