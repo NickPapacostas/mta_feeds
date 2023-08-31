@@ -50,7 +50,7 @@ defmodule MtaClient.Cleanup.Server do
   end
 
   defp schedule_cleanup() do
-    a_day_in_seconds = 86_400
-    Process.send_after(self(), :cleanup, a_day_in_seconds)
+    half_day_in_seconds = 43_200
+    Process.send_after(self(), :cleanup, half_day_in_seconds)
   end
 end

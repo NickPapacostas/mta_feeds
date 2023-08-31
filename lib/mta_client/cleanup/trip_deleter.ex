@@ -35,7 +35,9 @@ defmodule MtaClient.Cleanup.TripDeleter do
         }
       end)
 
-    Logger.info("Cleanup.TripDeleter result: #{inspect(result)}")
+    vacuum_result = Ecto.Adapters.SQL.query!(MtaClient.Repo, "VACUUM FULL")
+
+    Logger.info("Cleanup.TripDeleter result: #{inspect(result)}, #{inspect(vacuum_result)}")
     result
   end
 end
