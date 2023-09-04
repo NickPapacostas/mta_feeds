@@ -9,24 +9,22 @@ defmodule MtaClient.TripUpdates do
   alias MtaClient.Stations.Station
 
   def build_multis(multi, trip_updates) do
+    update_trip_ids = Enum.map(trip_updates, & &1.trip_id)
+
+    existing_trip_ids =
+      Repo.all(
+        from(
+          t in Trip,
+          where: t.trip_id in ^update_trip_ids,
+          select: t.trip_id
+        )
+      )
+
     trip_updates
     |> Enum.group_by(& &1.trip_id)
+    |> Enum.filter(fn {trip_id, _} -> trip_id in existing_trip_ids end)
     |> Enum.reduce(multi, fn {trip_id, update_maps}, acc_multi ->
-      latest_trip_with_trip_id =
-        Repo.one(
-          from(
-            t in Trip,
-            where: t.trip_id == ^trip_id,
-            select: t.id,
-            limit: 1
-          )
-        )
-
-      if latest_trip_with_trip_id do
-        append_update_multis(acc_multi, latest_trip_with_trip_id, update_maps)
-      else
-        acc_multi
-      end
+      append_update_multis(acc_multi, trip_id, update_maps)
     end)
   end
 

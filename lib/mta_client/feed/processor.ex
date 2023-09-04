@@ -35,7 +35,7 @@ defmodule MtaClient.Feed.Processor do
 
   def process_feed(path) do
     with {:ok, decoded_feed} <- decode_feed(path),
-         # determine feed processed already? 
+         # determine feed processed already?
          %{trips: trips, trip_updates: updates} = result <-
            Parser.parse_feed_entities(decoded_feed.entity) do
       Logger.info("Processor processing #{path}...")
@@ -50,7 +50,7 @@ defmodule MtaClient.Feed.Processor do
 
       Trips.delete_removed_upcoming_trips(trips)
 
-      Trips.populate_destinations()
+      # Trips.populate_destinations()
 
       result
     else
