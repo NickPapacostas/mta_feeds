@@ -50,7 +50,7 @@ defmodule MtaClient.Feed.Processor do
 
       Trips.delete_removed_upcoming_trips(trips)
 
-      # Trips.populate_destinations()
+      Trips.populate_destinations()
 
       result
     else

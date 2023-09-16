@@ -27,13 +27,10 @@ defmodule MtaClient.Cleanup.TripDeleter do
         where: t.start_date < ^two_days_ago
       )
 
-    result =
-      Repo.transaction(fn ->
-        {
-          Repo.delete_all(trip_updates_query),
-          Repo.delete_all(trips_query)
-        }
-      end)
+    result = {
+      Repo.delete_all(trip_updates_query),
+      Repo.delete_all(trips_query)
+    }
 
     vacuum_result = Ecto.Adapters.SQL.query!(MtaClient.Repo, "VACUUM FULL")
 

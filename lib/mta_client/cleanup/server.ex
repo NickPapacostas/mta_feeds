@@ -39,6 +39,7 @@ defmodule MtaClient.Cleanup.Server do
 
   @impl true
   def handle_info(:cleanup, %{stopped: true} = state) do
+    TripDeleter.delete_old_trips()
     schedule_cleanup()
 
     {:noreply, state}
@@ -46,11 +47,12 @@ defmodule MtaClient.Cleanup.Server do
 
   def handle_info(:cleanup, %{tick: tick} = state) do
     TripDeleter.delete_old_trips()
+    schedule_cleanup()
     {:noreply, %{state | tick: tick + 1}}
   end
 
   defp schedule_cleanup() do
-    half_day_in_seconds = 43_200
-    Process.send_after(self(), :cleanup, half_day_in_seconds)
+    six_hours_in_milliseconds = 6 * 60 * 60 * 1000
+    Process.send_after(self(), :cleanup, six_hours_in_milliseconds)
   end
 end
