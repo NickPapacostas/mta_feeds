@@ -71,7 +71,7 @@ defmodule MtaClientWeb.Live.Stations do
   defp upcoming_trips_for_station(assigns) do
     ~H"""
     <div class="p-2 flex flex-col border-black border-4 ">
-      <div class =" text-center rounded-lg "> 
+      <div class =" text-center rounded-lg ">
         <div class="text-black-100  font-extrabold"> <%= @station.name%> </div>
       </div>
       <div>
@@ -82,7 +82,7 @@ defmodule MtaClientWeb.Live.Stations do
             <div class="items-center pt-6">
               <div class="ml-4 flex text-center">
                 <div class="underline font-bold pr-4">
-                  <%= direction_label || @station.name %>  
+                  <%= direction_label || @station.name %>
                 </div>
               </div>
               <ul class="divide-black divide-y w-full">
@@ -108,7 +108,7 @@ defmodule MtaClientWeb.Live.Stations do
 
                       <div class="pl-4 font-bold">
                         <% arrival_time = time_until_arrival(trip.arrival_time) %>
-                        <%= if arrival_time <= 0, do: "arriving", else: "#{arrival_time} min" %> 
+                        <%= if arrival_time <= 0, do: "arriving", else: "#{arrival_time} min" %>
                       </div>
                     </div>
                   </li>
@@ -122,7 +122,7 @@ defmodule MtaClientWeb.Live.Stations do
     """
   end
 
-  ####  View Helpers 
+  ####  View Helpers
 
   defp boroughs_string_for_trips(trips) do
     trips

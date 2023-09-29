@@ -54,13 +54,6 @@ defmodule MtaClient.Trips do
       )
       |> Repo.all()
       |> Enum.map(fn {trip, name} ->
-        # changeset =
-        #   if trip.direction == :north do
-        #     Trip.changeset(trip, %{destination: north_direction_label})
-        #   else
-        #     Trip.changeset(trip, %{destination: south_direction_label})
-        #   end
-
         changeset = Trip.changeset(trip, %{destination: name})
         Repo.update(changeset)
       end)

@@ -8,6 +8,16 @@
     <%= live_title_tag assigns[:page_title] || "NYC TRAIN TIMES" %>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
+
+    <meta property="og:title" content="NYC TRAIN TIMES"/>
+    <meta property="og:description" content="Realtime subway updates"/>
+    <meta property="og:url" content="https://nyc-mta-realtime.fly.dev/"/>
+    <meta property="og:image" content="https://i.ibb.co/pjG5cVq/mta-example-2.png" />
+    <meta property="og:image:width" content="1867" />
+    <meta property="og:image:height" content="918" />
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+
   </head>
   <body class="bg-orange-100">
     <header>
