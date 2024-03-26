@@ -107,7 +107,7 @@ defmodule MtaClient.Feed.Parser do
   defp parse_trip_updates(trip_id, updates) do
     Enum.map(updates, fn %StopTimeUpdate{} = update ->
       arrival_time =
-        if update.arrival do
+        if update.arrival && update.arrival.time do
           Map.get(update.arrival, :time)
           |> DateTime.from_unix!()
           |> DateTime.to_naive()
@@ -129,7 +129,7 @@ defmodule MtaClient.Feed.Parser do
     end)
   end
 
-  # e.g. "20230115" 
+  # e.g. "20230115"
   defp parse_date_string(date_string) do
     case date_string do
       <<year::binary-4, month::binary-2, day::binary-2>> ->
