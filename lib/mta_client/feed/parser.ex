@@ -38,6 +38,10 @@ defmodule MtaClient.Feed.Parser do
     end)
   end
 
+  def parse_feed_entities_v2(feed_entities) do
+    Enum.map(feed_entities, &parse_trip/1) |> Enum.reject(fn {trip, updates} -> is_nil(trip) end)
+  end
+
   defp parse_trip(%FeedEntity{
          trip_update: %TripUpdate{
            trip: %TripDescriptor{} = trip,

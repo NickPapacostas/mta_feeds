@@ -36,6 +36,7 @@ defmodule MtaClient.Trips.Trip do
       @required_fields ++ @optional_fields
     )
     |> validate_required(@required_fields)
+    |> unique_constraint(:start_time, name: :trips_start_null_index)
 
     # handle index validation
   end

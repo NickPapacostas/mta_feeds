@@ -8,6 +8,33 @@ defmodule MtaClient.TripUpdates do
   alias MtaClient.Trips.{Trip, TripUpdate}
   alias MtaClient.Stations.Station
 
+  def insert_for_trip(trip_id, updates, station_gtfs_id_to_id) when not is_nil(trip_id) do
+    changesets =
+      updates
+      |> Enum.map(fn update ->
+        station_id = Map.get(station_gtfs_id_to_id, update.stop_id)
+
+        map_with_station_and_trip =
+          update
+          |> Map.delete(:stop_id)
+          |> Map.put(:trip_id, trip_id)
+          |> Map.put(:station_id, station_id)
+
+        TripUpdate.changeset(%TripUpdate{}, map_with_station_and_trip)
+      end)
+
+    Repo.transaction(fn _ ->
+      changesets
+      |> Enum.map(fn changeset ->
+        Repo.insert(
+          changeset,
+          on_conflict: :replace_all,
+          conflict_target: [:trip_id, :station_id]
+        )
+      end)
+    end)
+  end
+
   def build_multis(multi, trip_updates) do
     update_gtfs_trip_ids = Enum.map(trip_updates, & &1.trip_id)
 
@@ -26,53 +53,6 @@ defmodule MtaClient.TripUpdates do
     |> Enum.map(fn {trip_id, updates} -> {Map.get(gtfs_trip_id_to_id, trip_id), updates} end)
     |> Enum.reduce(multi, fn {trip_id, update_maps}, acc_multi ->
       append_update_multis(acc_multi, trip_id, update_maps)
-    end)
-  end
-
-  def populate_destination_boroughs(minutes_ahead) do
-    now = NaiveDateTime.utc_now()
-    look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
-
-    from(
-      tu in TripUpdate,
-      where: is_nil(tu.destination_boroughs),
-      where: tu.arrival_time > ^now,
-      where: tu.arrival_time < ^look_ahead_threshold,
-      join: s in assoc(tu, :station),
-      order_by: tu.arrival_time,
-      preload: [station: s]
-    )
-    |> Repo.all()
-    |> Enum.group_by(& &1.trip_id)
-    |> Enum.map(fn {_trip_id, updates} ->
-      destination_boroughs_for_updates(updates)
-    end)
-  end
-
-  defp destination_boroughs_for_updates(updates) do
-    updates
-    |> Enum.with_index()
-    |> Enum.map(fn {update, index} ->
-      future_other_boroughs =
-        updates
-        |> Enum.slice(index..-1)
-        |> Enum.map(fn tu -> tu.station.borough end)
-        |> Enum.uniq()
-        |> Enum.reject(&(&1 == update.station.borough))
-
-      destination_boroughs =
-        case future_other_boroughs do
-          [] -> [update.station.borough]
-          _ -> future_other_boroughs
-        end
-
-      update_boroughs_changeset =
-        TripUpdate.changeset(
-          update,
-          %{destination_boroughs: destination_boroughs}
-        )
-
-      Repo.update(update_boroughs_changeset)
     end)
   end
 
@@ -118,6 +98,54 @@ defmodule MtaClient.TripUpdates do
       else
         acc_multi
       end
+    end)
+  end
+
+  # unused
+  defp destination_boroughs_for_updates(updates) do
+    updates
+    |> Enum.with_index()
+    |> Enum.map(fn {update, index} ->
+      future_other_boroughs =
+        updates
+        |> Enum.slice(index..-1)
+        |> Enum.map(fn tu -> tu.station.borough end)
+        |> Enum.uniq()
+        |> Enum.reject(&(&1 == update.station.borough))
+
+      destination_boroughs =
+        case future_other_boroughs do
+          [] -> [update.station.borough]
+          _ -> future_other_boroughs
+        end
+
+      update_boroughs_changeset =
+        TripUpdate.changeset(
+          update,
+          %{destination_boroughs: destination_boroughs}
+        )
+
+      Repo.update(update_boroughs_changeset)
+    end)
+  end
+
+  def populate_destination_boroughs(minutes_ahead) do
+    now = NaiveDateTime.utc_now()
+    look_ahead_threshold = NaiveDateTime.add(now, minutes_ahead, :minute)
+
+    from(
+      tu in TripUpdate,
+      where: is_nil(tu.destination_boroughs),
+      where: tu.arrival_time > ^now,
+      where: tu.arrival_time < ^look_ahead_threshold,
+      join: s in assoc(tu, :station),
+      order_by: tu.arrival_time,
+      preload: [station: s]
+    )
+    |> Repo.all()
+    |> Enum.group_by(& &1.trip_id)
+    |> Enum.map(fn {_trip_id, updates} ->
+      destination_boroughs_for_updates(updates)
     end)
   end
 end

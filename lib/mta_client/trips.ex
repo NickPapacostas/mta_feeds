@@ -12,6 +12,43 @@ defmodule MtaClient.Trips do
     Repo.all(from(t in Trip, where: is_nil(t.destination)))
   end
 
+  def insert(raw_trip) do
+    changeset = Trip.changeset(%Trip{}, raw_trip)
+
+    result =
+      Repo.insert(
+        changeset,
+        # ensures we get back the db record with an id
+        on_conflict: {:replace, [:updated_at]},
+        conflict_target: [:trip_id, :start_date, :start_time],
+        returning: true
+      )
+
+    case result do
+      {:ok, trip} ->
+        {:ok, trip}
+
+      {:error, %{errors: errors}} ->
+        handle_null_start_time_constraint_error(errors, raw_trip)
+    end
+  end
+
+  defp handle_null_start_time_constraint_error(errors, %{trip_id: trip_id, start_date: start_date}) do
+    case Keyword.get(errors, :start_time) do
+      nil ->
+        {:error, errors}
+
+      _ ->
+        Repo.one(
+          from(
+            t in Trip,
+            where: t.start_date == ^start_date,
+            where: t.trip_id == ^trip_id
+          )
+        )
+    end
+  end
+
   def build_multis(multi, trip_maps) do
     trip_maps
     |> Enum.uniq_by(& &1.trip_id)
@@ -78,19 +115,27 @@ defmodule MtaClient.Trips do
       )
       |> Repo.all()
 
-    Repo.delete_all(
-      from(
-        u in TripUpdate,
-        where: u.trip_id in ^trip_ids_to_delete
+    {deleted_trip_count, _} =
+      Repo.delete_all(
+        from(
+          u in TripUpdate,
+          where: u.trip_id in ^trip_ids_to_delete
+        )
       )
+
+    {deleted_update_count, _} =
+      Repo.delete_all(
+        from(
+          t in Trip,
+          where: t.id in ^trip_ids_to_delete
+        )
+      )
+
+    Logger.info(
+      "Removed upcoming trips deleted: #{deleted_trip_count}, updates deleted: #{deleted_update_count}"
     )
 
-    Repo.delete_all(
-      from(
-        t in Trip,
-        where: t.id in ^trip_ids_to_delete
-      )
-    )
+    :ok
   end
 
   defp append_destination(trip_with_updates) do

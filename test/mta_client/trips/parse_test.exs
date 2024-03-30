@@ -1,7 +1,7 @@
 defmodule MtaClient.Trips.ParseTest do
   use ExUnit.Case, async: true
 
-  alias MtaClient.Trips.Parse
+  alias MtaClient.Feed.Parser
 
   setup do
     feed_entities = [
@@ -64,7 +64,7 @@ defmodule MtaClient.Trips.ParseTest do
                    trip_id: "120000_N..S"
                  }
                ]
-             } = Parse.feed_entities(feed_entities)
+             } = Parser.parse_feed_entities(feed_entities)
     end
   end
 end

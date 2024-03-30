@@ -1,9 +1,14 @@
 defmodule MtaClient.Feed.Processor do
   require Logger
 
+  import Ecto.Query
   alias Ecto.Multi
+  alias MtaClient.Repo
   alias MtaClient.Feed.Parser
-  alias MtaClient.{Trips, TripUpdates}
+  alias MtaClient.Trips
+  alias MtaClient.Trips.Trip
+  alias MtaClient.TripUpdates
+  alias MtaClient.Stations.Station
 
   @api_endpoint "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/"
   @yellow_lines_path "nyct%2Fgtfs-nqrw"
@@ -33,6 +38,48 @@ defmodule MtaClient.Feed.Processor do
     |> Enum.group_by(fn {k, _v} -> k end)
   end
 
+  def process_feeds_v2() do
+    all_line_paths()
+    |> Enum.map(&process_feed_v2/1)
+
+    Trips.populate_destinations()
+  end
+
+  def process_feed_v2(path) do
+    Logger.info("Processor processing v2 #{path}...")
+
+    with {:ok, decoded_feed} <- decode_feed(path),
+         trips_with_updates <- Parser.parse_feed_entities_v2(decoded_feed.entity) do
+      station_gtfs_id_to_id =
+        Repo.all(
+          from(
+            s in Station,
+            select: {s.gtfs_stop_id, s.id}
+          )
+        )
+        |> Enum.into(%{})
+
+      insert_results =
+        Enum.map(trips_with_updates, fn {trip, updates} ->
+          case Trips.insert(trip) do
+            {:ok, %Trip{id: trip_id}} ->
+              TripUpdates.insert_for_trip(trip_id, updates, station_gtfs_id_to_id)
+
+            error ->
+              error
+          end
+        end)
+
+      trips_with_updates
+      |> Enum.map(fn {trip, _updates} -> trip end)
+      |> Trips.delete_removed_upcoming_trips()
+
+      Logger.info("Processed v2 #{path}: #{length(insert_results)}")
+
+      insert_results
+    end
+  end
+
   def process_feed(path) do
     with {:ok, decoded_feed} <- decode_feed(path),
          # determine feed processed already?
@@ -60,7 +107,7 @@ defmodule MtaClient.Feed.Processor do
     end
   end
 
-  defp decode_feed(path) do
+  def decode_feed(path) do
     r =
       Finch.build(:get, @api_endpoint <> path, [
         {"x-api-key", api_key()}

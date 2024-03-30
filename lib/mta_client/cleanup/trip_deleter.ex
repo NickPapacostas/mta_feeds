@@ -18,7 +18,7 @@ defmodule MtaClient.Cleanup.TripDeleter do
       from(
         tu in TripUpdate,
         join: t in assoc(tu, :trip),
-        where: t.start_date < ^two_days_ago
+        where: t.start_date <= ^two_days_ago
       )
 
     trips_query =

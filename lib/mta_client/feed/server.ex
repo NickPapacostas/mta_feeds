@@ -47,7 +47,7 @@ defmodule MtaClient.Feed.Server do
   end
 
   def handle_info(:process_feed, %{tick: tick} = state) do
-    Processor.process_feeds()
+    Processor.process_feeds_v2()
     # TripUpdates.populate_destination_boroughs(120)
     schedule_feed_processing()
     Logger.info("Feed.Server processed feeds...")
