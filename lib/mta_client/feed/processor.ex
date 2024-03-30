@@ -66,6 +66,7 @@ defmodule MtaClient.Feed.Processor do
               TripUpdates.insert_for_trip(trip_id, updates, station_gtfs_id_to_id)
 
             error ->
+              Logger.warning("Skipping trip #{inspect(error)}")
               error
           end
         end)

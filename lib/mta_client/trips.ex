@@ -39,13 +39,14 @@ defmodule MtaClient.Trips do
         {:error, errors}
 
       _ ->
-        Repo.one(
-          from(
-            t in Trip,
-            where: t.start_date == ^start_date,
-            where: t.trip_id == ^trip_id
-          )
-        )
+        {:ok,
+         Repo.one(
+           from(
+             t in Trip,
+             where: t.start_date == ^start_date,
+             where: t.trip_id == ^trip_id
+           )
+         )}
     end
   end
 
