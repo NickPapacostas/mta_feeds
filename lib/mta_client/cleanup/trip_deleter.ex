@@ -27,14 +27,25 @@ defmodule MtaClient.Cleanup.TripDeleter do
         where: t.start_date < ^two_days_ago
       )
 
-    result = {
-      Repo.delete_all(trip_updates_query),
-      Repo.delete_all(trips_query)
-    }
+    trip_updates_query
+    |> Repo.all()
+    |> Enum.map(&Repo.delete_all([&1]))
+
+    trips_query
+    |> Repo.all()
+    |> Enum.map(&Repo.delete_all([&1]))
+
+    # maybe causing oom?
+    # result = {
+    #   Repo.delete_all(trip_updates_query),
+    #   Repo.delete_all(trips_query)
+    # }
 
     vacuum_result = Ecto.Adapters.SQL.query!(MtaClient.Repo, "VACUUM FULL")
 
-    Logger.info("Cleanup.TripDeleter result: #{inspect(result)}, #{inspect(vacuum_result)}")
-    result
+    # Logger.info("Cleanup.TripDeleter result: #{inspect(result)}, #{inspect(vacuum_result)}")
+    Logger.info("Cleanup.TripDeleter ran")
+
+    :ok
   end
 end
