@@ -46,7 +46,10 @@ defmodule MtaClient.Cleanup.Server do
   end
 
   def handle_info(:cleanup, %{tick: tick} = state) do
+    MtaClient.Feed.Server.stop(:infinity)
     TripDeleter.delete_old_trips()
+    MtaClient.Feed.Server.start()
+
     schedule_cleanup()
     {:noreply, %{state | tick: tick + 1}}
   end

@@ -12,31 +12,31 @@ defmodule MtaClient.Feed.Server do
   end
 
   def start() do
-    GenServer.cast(__MODULE__, :start)
+    GenServer.call(__MODULE__, :start)
   end
 
-  def stop() do
-    GenServer.cast(__MODULE__, :stop)
+  def stop(timeout \\ 10_000) do
+    GenServer.call(__MODULE__, :stop, timeout)
   end
 
   ## Callbacks
 
   @impl true
   def init(_) do
-    GenServer.cast(self(), :start)
+    Logger.warning("Feed.Server starting...")
+    Process.send(self(), :process_feed, [])
     {:ok, %{tick: 0, stopped: false}}
   end
 
   @impl true
-  def handle_cast(:start, state) do
+  def handle_call(:start, _from,  state) do
     Logger.warning("Feed.Server starting...")
-    Process.send(self(), :process_feed, [])
-    {:noreply, %{state | stopped: false}}
+    {:reply, :ok, %{state | stopped: false}}
   end
 
-  def handle_cast(:stop, state) do
+  def handle_call(:stop, _from,  state) do
     Logger.warning("Feed.Server stopping...")
-    {:noreply, %{state | stopped: true}}
+    {:reply, :ok, %{state | stopped: true}}
   end
 
   @impl true

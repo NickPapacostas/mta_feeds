@@ -8,6 +8,7 @@ alias MtaClient.Stations.Station
 alias MtaClient.Feed.Server
 alias MtaClient.Feed.Parser
 alias MtaClient.Broadcast
-Server.stop()
+Server.stop(:infinity)
 Broadcast.Server.stop()
 
+alias MtaClient.Cleanup.TripDeleter
